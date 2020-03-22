@@ -1,0 +1,43 @@
+BEGIN TRANSACTION;
+
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS roles (
+    id INTEGER PRIMARY KEY NOT NULL,
+    role_name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    role_id INTEGER NOT NULL,
+    FOREIGN KEY (role_id) REFERENCES roles (id)
+);
+
+CREATE TABLE IF NOT EXISTS access (
+    id INTEGER PRIMARY KEY NOT NULL,
+    access_type TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS files (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT NOT NULL,
+    path TEXT NOT NULL UNIQUE,
+    link TEXT NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL ,
+    FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
+CREATE TABLE IF NOT EXISTS access_users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    user_id INTEGER NOT NULL ,
+    file_id INTEGER NOT NULL ,
+    access_id INTEGER NOT NULL ,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (file_id) REFERENCES files (id),
+    FOREIGN KEY (access_id) REFERENCES access (id)
+);
+
+COMMIT;
