@@ -24,9 +24,9 @@ INSERT INTO
     users (username, password, email, role_id)
 VALUES
 (
-        'username-1',
+        'user-foo',
         '$2b$04$Yi6hvlUD7YpFE9seGQEGrO720TPPgAtNPyzK81kK8CNeV6z.uCfcC',
-        'mail-sample@outlook.com',
+        'foo-mail-sample@outlook.com',
         '2'
     );
 
@@ -34,9 +34,9 @@ INSERT INTO
     users (username, password, email, role_id)
 VALUES
 (
-        'username-2',
+        'user-bar',
         '$2b$04$Yi6hvlUD7YpFE9seGQEGrO720TPPgAtNPyzK81kK8CNeV6z.uCfcC',
-        'mail-sample@gmail.com',
+        'bar-mail-sample@gmail.com',
         '2'
     );
 

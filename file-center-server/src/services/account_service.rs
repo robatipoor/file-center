@@ -45,7 +45,8 @@ pub fn register(
 ) -> Result<ResponseBody<String>, ServiceError> {
     let role = Role::new(RoleName::RoleUser);
     let user = User::new(&*req.username, &*req.password, &*req.email, role);
-    if user.exist(&pool.get().unwrap()).is_ok() {
+    let result = user.exist(&pool.get().unwrap());
+    if result.is_ok() && result.unwrap() {
         Err(ServiceError::new(
             StatusCode::NON_AUTHORITATIVE_INFORMATION,
             "User Exist !".to_owned(),

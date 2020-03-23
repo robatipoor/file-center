@@ -33,13 +33,10 @@ pub fn is_write_access(pool: PoolSqliteData, file_id: i32, user_id: i32) -> Resu
         .map_err(|e| format!("{:?}", e))
 }
 
-pub fn add_access(pool: PoolSqliteData, access_user_id: i32) -> Result<usize, String> {
-    AccessUser::update_access(
-        &pool.get().unwrap(),
-        access_user_id,
-        AccessType::Write as i32,
-    )
-    .map_err(|e| format!("{:?}", e))
+pub fn add_access(pool: PoolSqliteData, access_user: AccessUser) -> Result<usize, String> {
+    access_user
+        .save(&pool.get().unwrap())
+        .map_err(|e| format!("{:?}", e))
 }
 
 pub fn update_access(
@@ -51,6 +48,4 @@ pub fn update_access(
         .map_err(|e| format!("{:?}", e))
 }
 
-pub fn delete_access(pool: PoolSqliteData, file_id: i32, user_id: i32) {
-    
-}
+pub fn delete_access(pool: PoolSqliteData, file_id: i32, user_id: i32) {}

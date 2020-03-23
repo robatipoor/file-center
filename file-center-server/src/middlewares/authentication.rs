@@ -1,11 +1,11 @@
 use crate::{config::constants, payloads::responses::ResponseBody, utils::jwt::Token};
 use actix_service::{Service, Transform};
 use actix_web::http::header::HeaderMap;
+use actix_web::HttpRequest;
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
     Error, HttpResponse,
 };
-
 use futures::{
     future::{ok, Ready},
     Future,
@@ -78,6 +78,16 @@ where
             })
         }
     }
+}
+
+pub fn get_claims_from_request(req: HttpRequest) -> Option<Token> {
+    if let Some(token) = get_token_from_header(req.headers()) {
+        if let Ok(claims) = Token::decode(token) {
+            info!("claims => {:?}", claims);
+            return Some(claims.claims);
+        }
+    }
+    None
 }
 
 pub fn get_token_from_header(header: &HeaderMap) -> Option<String> {
