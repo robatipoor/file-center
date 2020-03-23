@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::env;
 
 /// Our claims struct, it needs to derive `Serialize` and/or `Deserialize`
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Token {
     pub sub: String,
     pub rol: i32,

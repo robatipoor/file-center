@@ -27,6 +27,10 @@ pub fn config(service_config: &mut web::ServiceConfig) {
                         web::resource("upload")
                             .route(web::get().to(help_upload_file))
                             .route(web::post().to(upload_file)),
+                    )
+                    .service(
+                        web::resource("list")
+                            .route(web::get().to(list_file))
                     ),
             ),
     );
