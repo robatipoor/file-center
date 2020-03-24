@@ -79,9 +79,23 @@ pub async fn list_file(req: HttpRequest, pool: PoolSqliteData) -> HttpResponse {
     return HttpResponse::build(StatusCode::UNAUTHORIZED).body("user not auth");
 }
 
-pub async fn download_file(req: HttpRequest) -> Result<NamedFile> {
-    let path: PathBuf = req.match_info().query("filename").parse().unwrap();
-    Ok(NamedFile::open(path)?)
+pub async fn download_file(req: HttpRequest, pool: PoolSqliteData) -> Result<NamedFile> {
+    let link: String = req
+        .match_info()
+        .query("linkID")
+        .parse()
+        .unwrap();
+    let claims = get_claims_from_request(req);
+    if claims.is_some() {
+        let file = File::find_by_link(&pool.get().unwrap(), &*link)
+            .unwrap();
+        let user_id = User::find_id(&pool.get().unwrap(), &*claims.unwrap().sub)
+            .unwrap();
+        if user_id == file.user_id {
+            return Ok(NamedFile::open(&*file.path).unwrap());
+        }
+    }
+    panic!("file not owned ")
 }
 
 pub async fn help_upload_file() -> HttpResponse {

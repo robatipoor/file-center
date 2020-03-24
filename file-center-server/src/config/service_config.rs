@@ -22,7 +22,7 @@ pub fn config(service_config: &mut web::ServiceConfig) {
             .service(
                 web::scope("file")
                     .wrap(authentication::Authentication)
-                    .service(web::resource("download/{filename:.*}").route(web::get().to(download_file)))
+                    .service(web::resource("download/{linkID:.*}").route(web::get().to(download_file)))
                     .service(
                         web::resource("upload")
                             .route(web::get().to(help_upload_file))

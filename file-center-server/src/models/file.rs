@@ -1,5 +1,6 @@
 use log::info;
 use rusqlite::{params, Connection, Error, Result};
+use std::path::PathBuf;
 pub struct File {
     pub id: i32,
     pub name: String,
@@ -58,20 +59,11 @@ impl File {
         Err(Error::InvalidQuery)
     }
 
-    pub fn find_by_path(conn: &Connection, path: &str) -> Result<File> {
-        let mut stmt =
-            conn.prepare("SELECT id, name, path, link, user_id FROM files WHERE path = ?1")?;
-        let files = stmt.query_map(&[path], |row| {
-            Ok(File {
-                id: row.get(0)?,
-                name: row.get(1)?,
-                path: row.get(2)?,
-                link: row.get(3)?,
-                user_id: row.get(4)?,
-            })
-        })?;
-        for file in files {
-            return file;
+    pub fn find_path_by_link(conn: &Connection, link: &str) -> Result<String> {
+        let mut stmt = conn.prepare("SELECT path FROM files WHERE link = ?1")?;
+        let paths = stmt.query_map(&[link], |row| Ok(row.get(0)?))?;
+        for path in paths {
+            return path;
         }
         Err(Error::InvalidQuery)
     }
