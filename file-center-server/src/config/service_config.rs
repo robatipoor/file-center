@@ -1,5 +1,6 @@
 use actix_web::web;
 
+use crate::api::access_controller::*;
 use crate::api::account_controller::*;
 use crate::api::file_controller::*;
 use crate::api::*;
@@ -22,15 +23,19 @@ pub fn config(service_config: &mut web::ServiceConfig) {
             .service(
                 web::scope("file")
                     .wrap(authentication::Authentication)
-                    .service(web::resource("download/{linkID:.*}").route(web::get().to(download_file)))
+                    .service(
+                        web::resource("download/{linkID:.*}").route(web::get().to(download_file)),
+                    )
                     .service(
                         web::resource("upload")
                             .route(web::get().to(help_upload_file))
                             .route(web::post().to(upload_file)),
                     )
+                    .service(web::resource("list").route(web::get().to(list_file)))
                     .service(
-                        web::resource("list")
-                            .route(web::get().to(list_file))
+                        web::resource("access")
+                            .route(web::post().to(add_access))
+                            .route(web::delete().to(remove_access)),
                     ),
             ),
     );

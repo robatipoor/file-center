@@ -26,15 +26,15 @@ CREATE TABLE IF NOT EXISTS files (
     name TEXT NOT NULL,
     path TEXT NOT NULL UNIQUE,
     link TEXT NOT NULL UNIQUE,
-    user_id INTEGER NOT NULL ,
+    user_id INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 CREATE TABLE IF NOT EXISTS access_users (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    user_id INTEGER NOT NULL ,
-    file_id INTEGER NOT NULL ,
-    access_id INTEGER NOT NULL ,
+    user_id INTEGER NOT NULL,
+    file_id INTEGER NOT NULL,
+    access_id INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (id),
     FOREIGN KEY (file_id) REFERENCES files (id),
     FOREIGN KEY (access_id) REFERENCES access (id)

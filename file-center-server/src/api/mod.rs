@@ -1,5 +1,6 @@
 pub mod account_controller;
 pub mod file_controller;
+pub mod access_controller;
 use actix_web::*;
 
 pub async fn ping() -> Result<HttpResponse> {

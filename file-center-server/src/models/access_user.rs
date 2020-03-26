@@ -1,6 +1,5 @@
 use log::info;
-use rusqlite::{params, Connection, Error, Result};
-
+use rusqlite::{Connection, Error, Result};
 pub struct AccessUser {
     pub id: i32,
     pub user_id: i32,
@@ -110,16 +109,16 @@ impl AccessUser {
         return result;
     }
 
-    // pub fn exist(&self, conn: &Connection) -> Result<bool> {
-    //     let mut stmt =
-    //         conn.prepare("SELECT username FROM users WHERE username = ?1 OR email = ?2")?;
-    //     let result = stmt.exists(&[&self.username, &self.email]);
-    //     info!(
-    //         "User {} with email {} exist => {:?}",
-    //         self.username, self.email, result
-    //     );
-    //     return result;
-    // }
+    pub fn user_has_read_access(conn: &Connection, link: &str, user_id: i32) -> Result<bool> {
+        let mut stmt =
+            conn.prepare("SELECT id FROM access_users WHERE link = ?1 AND user_id = ?2)")?;
+        let result = stmt.exists(&[link.to_string(), user_id.to_string()]);
+        info!(
+            "User {} with file {} is read access => {:?}",
+            user_id, link, result
+        );
+        return result;
+    }
 
     pub fn update_access(conn: &Connection, access_user_id: i32, access_id: i32) -> Result<usize> {
         let id = conn.execute(

@@ -1,6 +1,5 @@
 use log::info;
-use rusqlite::{params, Connection, Error, Result};
-use std::path::PathBuf;
+use rusqlite::{Connection, Error, Result};
 pub struct File {
     pub id: i32,
     pub name: String,
@@ -101,50 +100,18 @@ impl File {
         Ok(files.into_iter().flat_map(|r| r).collect::<Vec<File>>())
     }
 
-    pub fn find_all(conn: &Connection) -> Result<Vec<File>> {
-        let mut stmt = conn.prepare("SELECT id, name, path ,link ,user_id FROM files")?;
-        let files = stmt.query_map(params![], |row| {
-            Ok(File {
-                id: row.get(0)?,
-                name: row.get(1)?,
-                path: row.get(2)?,
-                link: row.get(3)?,
-                user_id: row.get(4)?,
-            })
-        })?;
-        Ok(files.into_iter().flat_map(|r| r).collect::<Vec<File>>())
+    pub fn find_all_link_files(conn: &Connection, user_id: i32) -> Result<Vec<String>> {
+        let mut stmt = conn.prepare("SELECT link FROM files WHERE user_id = ?1")?;
+        let files = stmt.query_map(&[user_id], |row| Ok(row.get(0)?))?;
+        Ok(files.into_iter().flat_map(|r| r).collect::<Vec<String>>())
     }
 
-    pub fn is_owner(conn: &Connection, file_id: i32, user_id: i32) -> Result<bool> {
-        let mut stmt = conn.prepare("SELECT id FROM files WHERE id = ?1 AND user_id = ?2")?;
-        let result = stmt.exists(&[file_id, user_id]);
-        info!(
-            "User id {} file id {} is owner => {:?}",
-            user_id, file_id, result
-        );
+    pub fn is_owner(conn: &Connection, link: &str, user_id: i32) -> Result<bool> {
+        let mut stmt = conn.prepare("SELECT id FROM files WHERE user_id = ?1 AND link = ?2")?;
+        let result = stmt.exists(&[user_id.to_string(), link.to_string()]);
+        info!("User id {} link {} is owner => {:?}", user_id, link, result);
         return result;
     }
-
-    pub fn is_owner_by_link(conn: &Connection, link: &str, user_id: i32) -> Result<bool> {
-        let mut stmt = conn.prepare("SELECT id FROM files WHERE link = ?1 AND user_id = ?2")?;
-        let result = stmt.exists(&[link.to_owned(), user_id.to_string()]);
-        info!(
-            "User id {} link file {} is owner => {:?}",
-            user_id, link, result
-        );
-        return result;
-    }
-
-    // pub fn exist(&self, conn: &Connection) -> Result<bool> {
-    //     let mut stmt =
-    //         conn.prepare("SELECT username FROM users WHERE username = ?1 OR email = ?2")?;
-    //     let result = stmt.exists(&[&self.username, &self.email]);
-    //     info!(
-    //         "User {} with email {} exist => {:?}",
-    //         self.username, self.email, result
-    //     );
-    //     return result;
-    // }
 
     pub fn update(&self, conn: &Connection) -> Result<usize> {
         let id = conn.execute(

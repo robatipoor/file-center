@@ -17,8 +17,8 @@ use serde_json::json;
 type PoolSqliteData = web::Data<Pool<SqliteConnectionManager>>;
 type ResultResponse = Result<TokenBodyResponse, ServiceError>;
 
-pub fn is_owner(pool: PoolSqliteData, file_id: i32, user_id: i32) -> Result<bool, String> {
-    File::is_owner(&pool.get().unwrap(), file_id, user_id).map_err(|e| format!("{:?}", e))
+pub fn is_owner(pool: PoolSqliteData, link:&str, user_id: i32) -> Result<bool, String> {
+    File::is_owner(&pool.get().unwrap(), link, user_id).map_err(|e| format!("{:?}", e))
 }
 
 pub fn is_read_access(pool: PoolSqliteData, file_id: i32, user_id: i32) -> Result<bool, String> {
@@ -48,4 +48,6 @@ pub fn update_access(
         .map_err(|e| format!("{:?}", e))
 }
 
-pub fn delete_access(pool: PoolSqliteData, file_id: i32, user_id: i32) {}
+pub fn delete_access(pool: PoolSqliteData, file_id: i32, user_id: i32) {
+    todo!()
+}

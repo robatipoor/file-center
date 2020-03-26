@@ -1,9 +1,9 @@
-use crate::middlewares::authentication::get_claims_from_request;
+use crate::middlewares::authentication::get_user_id_from_request;
 use crate::models::file::File;
-use crate::models::user::User;
+use crate::services::file_service;
 use actix_files::NamedFile;
 use actix_multipart::Multipart;
-use actix_web::{http::StatusCode, web, Error, HttpResponse};
+use actix_web::{web, HttpResponse};
 use actix_web::{HttpRequest, Result};
 use futures::StreamExt;
 use r2d2::Pool;
@@ -11,94 +11,65 @@ use r2d2_sqlite::SqliteConnectionManager;
 use std::env;
 use std::io::Write;
 use std::path::Path;
-use std::path::PathBuf;
 use uuid::Uuid;
+
 type PoolSqliteData = web::Data<Pool<SqliteConnectionManager>>;
+type ResutResponse = Result<HttpResponse>;
 
 pub async fn upload_file(
+    pool: PoolSqliteData,
     mut payload: Multipart,
     req: HttpRequest,
-    pool: PoolSqliteData,
-) -> Result<HttpResponse, Error> {
+) -> ResutResponse {
     // iterate over multipart stream
-    let claims = get_claims_from_request(req);
-    if claims.is_some() {
-        let path = env::var("PATH_FILE").unwrap();
-        let username = claims.unwrap().clone().sub;
-        let result_id = User::find_id(&pool.get().unwrap(), &*username);
-        if result_id.is_err() {
-            return Ok(HttpResponse::build(StatusCode::UNAUTHORIZED).body("user not validate"));
-        }
-        let id = result_id.unwrap();
-        while let Some(item) = payload.next().await {
-            let mut field = item?;
-            let content_type = field.content_disposition().unwrap();
-            let filename = content_type.get_filename().unwrap().to_string();
-
-            let filepath = Path::new(&path).join(&*filename);
-            let uuid = Uuid::new_v4().to_string().replace("-", "");
-            let conn = pool.clone().get().unwrap();
-            // File::create is blocking operation, use threadpool
-            let mut f = web::block(move || {
-                File::new(&*filename, filepath.to_str().unwrap(), &*uuid, id)
-                    .save(&conn)
-                    .expect("save file failed");
-                return std::fs::File::create(filepath);
-            })
-            .await
-            .unwrap();
-            // Field in turn is stream of *Bytes* object
-            while let Some(chunk) = field.next().await {
-                let data = chunk.unwrap();
-                // filesystem operations are blocking, we have to use threadpool
-                f = web::block(move || f.write_all(&data).map(|_| f)).await?;
-            }
-        }
-
-        Ok(HttpResponse::Ok().into())
-    } else {
-        Err(HttpResponse::build(StatusCode::UNAUTHORIZED).into())
-    }
-}
-
-pub async fn list_file(req: HttpRequest, pool: PoolSqliteData) -> HttpResponse {
-    let claims = get_claims_from_request(req);
-    if let Some(clm) = claims {
-        let result = User::find_id(&pool.get().unwrap(), &clm.sub);
-        if result.is_ok() {
-            let files = File::find_by_user(&pool.get().unwrap(), result.unwrap()).unwrap();
-            let f = files
-                .iter()
-                .map(|e| e.link.clone())
-                .collect::<Vec<String>>();
-            return HttpResponse::Ok().json(f);
-        } else {
-            return HttpResponse::build(StatusCode::UNAUTHORIZED).body("user id not exist");
-        }
-    }
-    return HttpResponse::build(StatusCode::UNAUTHORIZED).body("user not auth");
-}
-
-pub async fn download_file(req: HttpRequest, pool: PoolSqliteData) -> Result<NamedFile> {
-    let link: String = req
-        .match_info()
-        .query("linkID")
-        .parse()
+    let user_id = get_user_id_from_request(pool.clone(), req).unwrap();
+    let path = env::var("PATH_FILE").unwrap();
+    while let Some(item) = payload.next().await {
+        let mut field = item?;
+        let content_type = field.content_disposition().unwrap();
+        let filename = content_type.get_filename().unwrap().to_string();
+        let uuid = Uuid::new_v4().to_string().replace("-", "");
+        let filepath = Path::new(&path).join(&*format!("{}-{}", uuid, filename));
+        let conn = pool.clone().get().unwrap();
+        // File::create is blocking operation, use threadpool
+        let mut f = web::block(move || {
+            File::new(&*filename, filepath.to_str().unwrap(), &*uuid, user_id)
+                .save(&conn)
+                .expect("save file failed");
+            return std::fs::File::create(filepath);
+        })
+        .await
         .unwrap();
-    let claims = get_claims_from_request(req);
-    if claims.is_some() {
-        let file = File::find_by_link(&pool.get().unwrap(), &*link)
-            .unwrap();
-        let user_id = User::find_id(&pool.get().unwrap(), &*claims.unwrap().sub)
-            .unwrap();
-        if user_id == file.user_id {
-            return Ok(NamedFile::open(&*file.path).unwrap());
+        // Field in turn is stream of *Bytes* object
+        while let Some(chunk) = field.next().await {
+            let data = chunk.unwrap();
+            // filesystem operations are blocking, we have to use threadpool
+            f = web::block(move || f.write_all(&data).map(|_| f)).await?;
         }
     }
-    panic!("file not owned ")
+    Ok(HttpResponse::Ok().into())
 }
 
-pub async fn help_upload_file() -> HttpResponse {
-    let text = r#""#;
-    HttpResponse::Ok().body(text)
+pub async fn list_file(pool: PoolSqliteData, req: HttpRequest) -> ResutResponse {
+    let user_id = get_user_id_from_request(pool.clone(), req);
+    if let Err(e) = user_id {
+        return Ok(HttpResponse::Ok().body(e));
+    }
+    let list = file_service::list_link_files(pool, user_id.unwrap());
+    if let Err(e) = list {
+        return Ok(HttpResponse::Ok().body(e));
+    }
+    Ok(HttpResponse::Ok().json(list.unwrap()))
+}
+
+pub async fn download_file(pool: PoolSqliteData, req: HttpRequest) -> Result<NamedFile> {
+    let link: String = req.match_info().query("linkID").parse().unwrap();
+    let user_id = get_user_id_from_request(pool.clone(), req).unwrap();
+    let path = file_service::download_path(pool, &*link, user_id).unwrap();
+    Ok(NamedFile::open(path)?)
+}
+
+pub async fn help_upload_file() -> ResutResponse {
+    let text = r#" Post File "#;
+    Ok(HttpResponse::Ok().body(text))
 }

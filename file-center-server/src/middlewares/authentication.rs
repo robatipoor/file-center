@@ -1,20 +1,25 @@
+use crate::models::user::User;
 use crate::{config::constants, payloads::responses::ResponseBody, utils::jwt::Token};
 use actix_service::{Service, Transform};
 use actix_web::http::header::HeaderMap;
 use actix_web::HttpRequest;
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
-    Error, HttpResponse,
+    web, Error, HttpResponse,
 };
 use futures::{
     future::{ok, Ready},
     Future,
 };
 use log::*;
+use r2d2::Pool;
+use r2d2_sqlite::SqliteConnectionManager;
 use std::{
     pin::Pin,
     task::{Context, Poll},
 };
+
+type PoolSqliteData = web::Data<Pool<SqliteConnectionManager>>;
 
 pub struct Authentication;
 
@@ -78,6 +83,12 @@ where
             })
         }
     }
+}
+
+pub fn get_user_id_from_request(pool: PoolSqliteData, req: HttpRequest) -> Result<i32, String> {
+    get_claims_from_request(req)
+        .and_then(|token| User::find_id(&pool.get().unwrap(), &*token.sub).ok())
+        .ok_or("User Not Authorization".to_owned())
 }
 
 pub fn get_claims_from_request(req: HttpRequest) -> Option<Token> {
