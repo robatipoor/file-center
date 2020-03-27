@@ -85,7 +85,7 @@ impl AccessUser {
     pub fn find_id(conn: &Connection, user_id: i32, file_id: i32) -> Result<i32> {
         let mut stmt =
             conn.prepare("SELECT id FROM access_users WHERE user_id = ?1 AND file_id = ?2")?;
-        let access_users = stmt.query_map(&[user_id.to_string()], |row| Ok(row.get(0)?))?;
+        let access_users = stmt.query_map(&[user_id.to_string(),file_id.to_string()], |row| Ok(row.get(0)?))?;
         for access_user in access_users {
             return access_user;
         }

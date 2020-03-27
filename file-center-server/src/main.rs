@@ -12,6 +12,7 @@ extern crate r2d2;
 extern crate r2d2_sqlite;
 extern crate rusqlite;
 extern crate serde_json;
+extern crate uuid;
 
 mod api;
 mod config;
@@ -23,8 +24,6 @@ mod services;
 mod utils;
 
 use crate::config::service_config::config;
-use crate::models::role::{Role, RoleName};
-use crate::models::user::User;
 use crate::models::DataBase;
 use actix_cors::Cors;
 use actix_web::{http, App, HttpServer};
