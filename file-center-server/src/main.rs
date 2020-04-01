@@ -38,7 +38,8 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
     let port = env::var("PORT").unwrap();
     let addr = format!("127.0.0.1:{}", port);
-    let conn = DataBase::migrate().unwrap().get_connection();
+    let db = DataBase::migrate().await.unwrap();
+    let pool = db.get_conn_pool().await;
     info!("Start Server {}", addr);
     HttpServer::new(move || {
         App::new()
@@ -51,7 +52,7 @@ async fn main() -> std::io::Result<()> {
                     .max_age(3600)
                     .finish(),
             )
-            .data(conn.clone())
+            .data(pool.clone())
             .wrap(actix_web::middleware::Logger::default())
             .configure(config)
     })

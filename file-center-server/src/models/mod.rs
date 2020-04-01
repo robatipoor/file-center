@@ -4,12 +4,10 @@ pub mod file;
 pub mod role;
 pub mod user;
 
-extern crate rusqlite;
-
 use crate::utils::file::read_file;
-use r2d2::Pool;
-use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite::{Connection, Result};
+use sqlx::prelude::*;
+use sqlx::{Pool, SqliteConnection, SqlitePool};
+use std::env;
 use std::fmt;
 
 pub enum DatabaseMode {
@@ -57,91 +55,83 @@ impl From<String> for DatabaseMode {
 }
 
 impl DatabaseMode {
-    pub fn from_env() -> std::result::Result<DatabaseMode, std::env::VarError> {
+    pub fn from_env() -> anyhow::Result<Self> {
         let m = std::env::var("DATABASE_MODE")?;
         Ok(m.into())
     }
 }
 
 pub struct DataBase {
-    pub connection: Pool<SqliteConnectionManager>,
+    pub pool: Pool<SqliteConnection>,
 }
 
 impl DataBase {
-    pub fn new() -> DataBase {
-        DataBase {
-            connection: DataBase::get_connection_pool(),
-        }
+    pub async fn new() -> anyhow::Result<DataBase> {
+        Ok(DataBase {
+            pool: DataBase::open_conn_pool().await?,
+        })
     }
-    pub fn migrate() -> Result<DataBase> {
+
+    pub async fn migrate() -> anyhow::Result<DataBase> {
         use DatabaseMode::*;
-        let mod_db = DatabaseMode::from_env().unwrap();
-        let db = DataBase {
-            connection: DataBase::get_connection_pool(),
-        };
+        let mod_db = DatabaseMode::from_env()?;
+        let db = DataBase::new().await?;
         match mod_db {
-            UpdateSchema => db.update_schema()?,
-            InsertData => db.insert_data()?,
-            DeleteData => db.delete_data()?,
-            DropAll => db.drop_database()?,
-            CreateSchema => db.create_schema()?,
+            UpdateSchema => db.update_schema().await?,
+            InsertData => db.insert_data().await?,
+            DeleteData => db.delete_data().await?,
+            DropAll => db.drop_database().await?,
+            CreateSchema => db.create_schema().await?,
             None => println!("Noting ..."),
         }
         Ok(db)
     }
 
-    pub fn get_connection(self) -> Pool<SqliteConnectionManager> {
-        return self.connection;
+    pub async fn get_conn_pool(self) -> Pool<SqliteConnection> {
+        return self.pool;
     }
 
-    fn open_connection() -> Result<Connection> {
-        Connection::open(std::env::var("DATABASE_URL").unwrap())
+    async fn open_conn_pool() -> anyhow::Result<Pool<SqliteConnection>> {
+        let pool = SqlitePool::new(&*env::var("DATABASE_URL")?).await?;
+        Ok(pool)
     }
 
-    fn get_connection_pool() -> Pool<SqliteConnectionManager> {
-        let manager = SqliteConnectionManager::file(std::env::var("DATABASE_URL").unwrap());
-        let pool = r2d2::Pool::new(manager).unwrap();
-        pool
-    }
-
-    fn update_schema(&self) -> Result<()> {
+    async fn update_schema(&self) -> anyhow::Result<()> {
         println!("Update DataBase ...");
-        self.drop_database()?;
-        self.create_schema()?;
-        self.insert_data()?;
-        Ok(())
-    }
-    fn create_schema(&self) -> Result<()> {
-        self.connection
-            .get()
-            .unwrap()
-            .execute_batch(&*read_file("sql/schema.sql").unwrap())?;
-        println!("Create Schema ");
-        Ok(())
-    }
-    pub fn insert_data(&self) -> Result<()> {
-        self.connection
-            .get()
-            .unwrap()
-            .execute_batch(&*read_file("sql/insert.sql").unwrap())?;
-        println!("Insert Data ");
-        Ok(())
-    }
-    pub fn drop_database(&self) -> Result<()> {
-        self.connection
-            .get()
-            .unwrap()
-            .execute_batch(&*read_file("sql/drop.sql").unwrap())?;
-        println!("Drop DataBase ");
+        self.drop_database().await?;
+        self.create_schema().await?;
+        self.insert_data().await?;
         Ok(())
     }
 
-    pub fn delete_data(&self) -> Result<()> {
-        self.connection
-            .get()
-            .unwrap()
-            .execute_batch(&*read_file("sql/delete.sql").unwrap())?;
-        println!("Delete Data ");
+    async fn create_schema(&self) -> anyhow::Result<()> {
+        sqlx::query(&*read_file("sql/schema.sql")?)
+            .execute(&self.pool)
+            .await?;
+        println!("Create Schema ...");
+        Ok(())
+    }
+    pub async fn insert_data(&self) -> anyhow::Result<()> {
+        sqlx::query(&*read_file("sql/insert.sql")?)
+            .execute(&self.pool)
+            .await?;
+        println!("Insert Data ...");
+        Ok(())
+    }
+
+    pub async fn drop_database(&self) -> anyhow::Result<()> {
+        sqlx::query(&*read_file("sql/drop.sql")?)
+            .execute(&self.pool)
+            .await?;
+        println!("Drop Table ...");
+        Ok(())
+    }
+
+    pub async fn delete_data(&self) -> anyhow::Result<()> {
+        sqlx::query(&*read_file("sql/delete.sql")?)
+            .execute(&self.pool)
+            .await?;
+        println!("Delete Data ...");
         Ok(())
     }
 }
