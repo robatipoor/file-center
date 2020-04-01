@@ -1,84 +1,75 @@
-use rusqlite::{params, Connection, Error, Result};
-use serde::{Deserialize, Serialize};
-use std::fmt;
+use sqlx::decode::Decode;
+use sqlx::encode::Encode;
+use sqlx::prelude::*;
+use sqlx::sqlite::SqliteTypeInfo;
+use sqlx::{FromRow, Sqlite, Type};
+use sqlx::{Pool, SqliteConnection};
+use std::string::ToString;
 
-#[derive(Debug)]
+#[derive(FromRow, Debug)]
 pub struct Role {
-    pub id: i32,
+    pub id: i64,
     pub role_name: RoleName,
 }
 
-#[derive(Debug, Deserialize, Serialize, Copy, Clone)]
+#[derive(Decode, Encode, Debug, Copy, Clone, Display)]
 pub enum RoleName {
-    RoleAdmin,
-    RoleUser,
+    ADMIN,
+    USER,
 }
 
-impl fmt::Display for RoleName {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            RoleName::RoleAdmin => write!(f, "ROLE_ADMIN"),
-            RoleName::RoleUser => write!(f, "ROLE_USER"),
-        }
-    }
-}
 impl From<String> for RoleName {
     fn from(input: String) -> RoleName {
         use RoleName::*;
         let input_uppercase = input.to_uppercase();
-        if input_uppercase == RoleAdmin.to_string() {
-            return RoleName::RoleAdmin;
-        } else if input_uppercase == RoleAdmin.to_string() {
-            return RoleName::RoleUser;
+        if input_uppercase == ADMIN.to_string() {
+            return ADMIN;
+        } else if input_uppercase == USER.to_string() {
+            return USER;
         } else {
-            panic!("input invalid!");
+            panic!("input invalid !");
         }
     }
 }
+
+impl Type<Sqlite> for RoleName {
+    fn type_info() -> SqliteTypeInfo {
+        <str as Type<Sqlite>>::type_info()
+    }
+}
+
 impl Role {
-    pub fn new(role_name: RoleName) -> Role {
-        Role {
-            id: role_name as i32,
+    pub async fn new(role_name: RoleName) -> anyhow::Result<Role> {
+        Ok(Role {
+            id: role_name as i64,
             role_name,
-        }
+        })
     }
 
-    pub fn find_by_name(conn: &Connection, role_name: RoleName) -> Result<Role> {
-        let mut stmt = conn.prepare("SELECT id, role_name FROM roles WHERE role_name = ?1")?;
-        let role = stmt.query_map(&[role_name.to_string()], |row| {
-            Ok(Role {
-                id: row.get(0)?,
-                role_name: row.get::<_, String>(1)?.into(),
-            })
-        })?;
-        for r in role {
-            return r;
-        }
-        Err(Error::InvalidQuery)
+    pub async fn find_by_name(
+        pool: &Pool<SqliteConnection>,
+        role_name: RoleName,
+    ) -> anyhow::Result<Role> {
+        Ok(
+            sqlx::query_as::<_, Role>("SELECT id,role_name FROM roles WHERE role_name = $1")
+                .bind(role_name.to_string())
+                .fetch_one(pool)
+                .await?,
+        )
     }
 
-    pub fn find_by_id(conn: &Connection, user_id: usize) -> Result<Role> {
-        let mut stmt = conn.prepare("SELECT id, role_name FROM roles WHERE id = ?1")?;
-        let role = stmt.query_map(&[user_id.to_string()], |row| {
-            Ok(Role {
-                id: row.get(0)?,
-                role_name: row.get::<_, String>(1)?.into(),
-            })
-        })?;
-        for r in role {
-            return r;
-        }
-        Err(Error::InvalidQuery)
+    pub async fn find_by_id(pool: &Pool<SqliteConnection>, user_id: i64) -> anyhow::Result<Role> {
+        Ok(
+            sqlx::query_as::<_, Role>("SELECT id,role_name FROM roles WHERE id = $1")
+                .bind(user_id)
+                .fetch_one(pool)
+                .await?,
+        )
     }
 
-    pub fn find_all(conn: &Connection) -> Result<Vec<Role>> {
-        let mut stmt = conn.prepare("SELECT id,role_name FROM roles")?;
-        let roles = stmt.query_map(params![], |row| {
-            Ok(Role {
-                id: row.get(0)?,
-                role_name: row.get::<_, String>(1)?.into(),
-            })
-        })?;
-        Ok(roles.into_iter().flat_map(|r| r).collect::<Vec<Role>>())
+    pub async fn find_all(pool: &Pool<SqliteConnection>) -> anyhow::Result<Vec<Role>> {
+        Ok(sqlx::query_as::<_, Role>("SELECT id,role_name FROM roles")
+            .fetch_all(pool)
+            .await?)
     }
 }

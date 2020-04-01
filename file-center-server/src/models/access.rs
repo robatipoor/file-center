@@ -1,8 +1,9 @@
-use rusqlite::{params, Connection, Error, Result};
+use sqlx::prelude::*;
+use sqlx::{Pool, SqliteConnection, SqlitePool};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(sqlx::FromRow,Debug)]
 pub struct Access {
     pub id: i32,
     pub access_type: AccessType,
@@ -22,6 +23,7 @@ impl fmt::Display for AccessType {
         }
     }
 }
+
 impl From<String> for AccessType {
     fn from(input: String) -> AccessType {
         use AccessType::*;
@@ -35,6 +37,7 @@ impl From<String> for AccessType {
         }
     }
 }
+
 impl Access {
     pub fn new(access_type: AccessType) -> Access {
         Access {

@@ -1,5 +1,7 @@
 use log::info;
-use rusqlite::{Connection, Error, Result};
+use sqlx::prelude::*;
+use sqlx::{Pool, SqliteConnection, SqlitePool};
+#[derive(sqlx::FromRow,Debug)]
 pub struct File {
     pub id: i32,
     pub name: String,

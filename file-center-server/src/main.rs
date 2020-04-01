@@ -8,11 +8,12 @@ extern crate env_logger;
 extern crate futures;
 extern crate jsonwebtoken;
 extern crate log;
-extern crate r2d2;
-extern crate r2d2_sqlite;
-extern crate rusqlite;
 extern crate serde_json;
+extern crate sqlx;
+extern crate strum;
 extern crate uuid;
+#[macro_use]
+extern crate strum_macros;
 
 mod api;
 mod config;
@@ -30,7 +31,6 @@ use actix_web::{http, App, HttpServer};
 use log::info;
 use std::default::Default;
 use std::env;
-
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
