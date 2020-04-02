@@ -32,7 +32,7 @@ impl From<String> for AccessType {
         if input_uppercase == Read.to_string() {
             Read
         } else if input_uppercase == Write.to_string() {
-             Write
+            Write
         } else {
             panic!("input invalid !");
         }

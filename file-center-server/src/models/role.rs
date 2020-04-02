@@ -23,9 +23,9 @@ impl From<String> for RoleName {
         use RoleName::*;
         let input_uppercase = input.to_uppercase();
         if input_uppercase == ADMIN.to_string() {
-             ADMIN
+            ADMIN
         } else if input_uppercase == USER.to_string() {
-             USER
+            USER
         } else {
             panic!("input invalid !");
         }
