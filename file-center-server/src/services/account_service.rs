@@ -6,92 +6,57 @@ use crate::payloads::responses::*;
 use crate::utils::jwt::Token;
 use actix_web::{http::StatusCode, web};
 use log::{error, info};
-use r2d2::Pool;
-use r2d2_sqlite::SqliteConnectionManager;
-use serde_json::json;
-type PoolSqliteData = web::Data<Pool<SqliteConnectionManager>>;
+use sqlx::{Pool, SqliteConnection};
+type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
 type ResultResponse = actix_web::Result<TokenBodyResponse, ServiceError>;
 
-pub fn login(login: LoginRequest, pool: PoolSqliteData) -> ResultResponse {
-    match User::verify(&pool.get().unwrap(), login) {
-        Ok(logged_user) => {
-            match serde_json::from_value(
-                json!({ "token": Token::new(logged_user).encode().unwrap(), "token_type": "bearer" }),
-            ) {
-                Ok(token_res) => Ok(token_res),
-                Err(e) => {
-                    error!("{}", e);
-                    Err(ServiceError::new(
-                        StatusCode::INTERNAL_SERVER_ERROR,
-                        constants::MESSAGE_INTERNAL_SERVER_ERROR.to_string(),
-                    ))
-                }
-            }
-        }
-
-        Err(e) => {
-            error!("{}", e);
-            Err(ServiceError::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                constants::MESSAGE_LOGIN_FAILED.to_string(),
-            ))
-        }
-    }
+pub async fn login(
+    login: LoginRequest,
+    pool: &DataPoolSqlite,
+) -> anyhow::Result<TokenBodyResponse> {
+    let user_verified = User::verify(pool, login).await?;
+    let token = Token::new(user_verified).encode()?;
+    Ok(TokenBodyResponse::new(token, "bearer".to_owned()))
 }
 
-pub fn register(
+pub async fn register(
     req: RegisterRequest,
-    pool: PoolSqliteData,
-) -> Result<ResponseBody<String>, ServiceError> {
-    let role = Role::new(RoleName::RoleUser);
-    let user = User::new(&*req.username, &*req.password, &*req.email, role);
-    let result = user.exist(&pool.get().unwrap());
-    if result.is_ok() && result.unwrap() {
-        Err(ServiceError::new(
-            StatusCode::NON_AUTHORITATIVE_INFORMATION,
-            "User Exist !".to_owned(),
-        ))
-    } else {
-        let result_save = user.save(&pool.get().unwrap());
-        if result_save.is_ok() {
-            Ok(ResponseBody::new(
-                true,
-                "Success Register !".to_owned(),
-                Some(result_save.unwrap().to_string()),
-            ))
-        } else {
-            Err(ServiceError::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Sorry Register Failed !".to_owned(),
-            ))
-        }
+    pool: &DataPoolSqlite,
+) -> anyhow::Result<ResponseBody<String>> {
+    let role = Role::new(RoleName::USER).await?;
+    let user = User::new(&*req.username, &*req.password, &*req.email, role).await?;
+    if !user.exist(pool).await? {
+        let result_save = user.save(pool).await?;
+        let response = ResponseBody::new(true, "User Register".to_owned(), None);
+        return Ok(response);
     }
+    Err(anyhow!("User Exist !"))
 }
 
-pub fn get_list_users(
+pub async fn get_list_users(
     _req: RegisterRequest,
-    _pool: PoolSqliteData,
+    _pool: &DataPoolSqlite,
 ) -> Result<ResponseBody<String>, ServiceError> {
     todo!()
 }
 
-pub fn add_role_admin(
+pub async fn add_role_admin(
     _req: RegisterRequest,
-    _pool: PoolSqliteData,
+    _pool: &DataPoolSqlite,
 ) -> Result<ResponseBody<String>, ServiceError> {
     todo!()
 }
 
-pub fn delete_account(
+pub async fn delete_account(
     _req: RegisterRequest,
-    _pool: PoolSqliteData,
+    _pool: &DataPoolSqlite,
 ) -> Result<ResponseBody<String>, ServiceError> {
     todo!()
 }
 
-pub fn update_account(
+pub async fn update_account(
     _req: UpdateAccoutRequest,
-    _pool: PoolSqliteData,
+    _pool: &DataPoolSqlite,
 ) -> Result<ResponseBody<String>, ServiceError> {
     todo!()
 }

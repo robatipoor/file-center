@@ -11,43 +11,50 @@ use crate::utils::jwt::Token;
 use actix_web::Result;
 use actix_web::{http::StatusCode, web};
 use log::{error, info};
-use r2d2::Pool;
-use r2d2_sqlite::SqliteConnectionManager;
 use serde_json::json;
-type PoolSqliteData = web::Data<Pool<SqliteConnectionManager>>;
+use sqlx::{Pool, SqliteConnection};
+
+type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
 type ResultResponse = Result<TokenBodyResponse, ServiceError>;
 
-pub fn is_owner(pool: PoolSqliteData, link:&str, user_id: i32) -> Result<bool, String> {
-    File::is_owner(&pool.get().unwrap(), link, user_id).map_err(|e| format!("{:?}", e))
+pub async fn is_owner(pool: &DataPoolSqlite, link: &str, user_id: i64) -> anyhow::Result<bool> {
+    File::is_owner(pool, link, user_id).await
 }
 
-pub fn is_read_access(pool: PoolSqliteData, file_id: i32, user_id: i32) -> Result<bool, String> {
-    let access_id = AccessType::Read as i32;
-    AccessUser::is_user_access(&pool.get().unwrap(), user_id, file_id, access_id)
-        .map_err(|e| format!("{:?}", e))
+pub async fn is_read_access(
+    pool: &DataPoolSqlite,
+    file_id: i64,
+    user_id: i64,
+) -> anyhow::Result<bool> {
+    let access_id = AccessType::Read as i64;
+    AccessUser::is_user_access(pool, user_id, file_id, access_id).await
 }
 
-pub fn is_write_access(pool: PoolSqliteData, file_id: i32, user_id: i32) -> Result<bool, String> {
-    let access_id = AccessType::Write as i32;
-    AccessUser::is_user_access(&pool.get().unwrap(), user_id, file_id, access_id)
-        .map_err(|e| format!("{:?}", e))
+pub async fn is_write_access(
+    pool: &DataPoolSqlite,
+    file_id: i64,
+    user_id: i64,
+) -> anyhow::Result<bool> {
+    let access_id = AccessType::Write as i64;
+    AccessUser::is_user_access(pool, user_id, file_id, access_id).await
 }
 
-pub fn add_access(pool: PoolSqliteData, access_user: AccessUser) -> Result<usize, String> {
-    access_user
-        .save(&pool.get().unwrap())
-        .map_err(|e| format!("{:?}", e))
+pub async fn add_access(pool: &DataPoolSqlite, access_user: AccessUser) -> anyhow::Result<i64> {
+    access_user.save(pool).await
 }
 
-pub fn update_access(
-    pool: PoolSqliteData,
-    access_user_id: i32,
-    access_id: i32,
-) -> Result<usize, String> {
-    AccessUser::update_access(&pool.get().unwrap(), access_user_id, access_id)
-        .map_err(|e| format!("{:?}", e))
+pub async fn update_access(
+    pool: &DataPoolSqlite,
+    access_user_id: i64,
+    access_id: i64,
+) -> anyhow::Result<u64> {
+    AccessUser::update_access(pool, access_user_id, access_id).await
 }
 
-pub fn delete_access(pool: PoolSqliteData, file_id: i32, user_id: i32) {
+pub async fn delete_access(
+    pool: &DataPoolSqlite,
+    file_id: i64,
+    user_id: i64,
+) -> anyhow::Result<()> {
     todo!()
 }

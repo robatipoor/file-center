@@ -12,14 +12,14 @@ use futures::{
     Future,
 };
 use log::*;
-use r2d2::Pool;
-use r2d2_sqlite::SqliteConnectionManager;
+use sqlx::prelude::*;
+use sqlx::{Pool, SqliteConnection};
 use std::{
     pin::Pin,
     task::{Context, Poll},
 };
 
-type PoolSqliteData = web::Data<Pool<SqliteConnectionManager>>;
+type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
 
 pub struct Authentication;
 
@@ -85,10 +85,15 @@ where
     }
 }
 
-pub fn get_user_id_from_request(pool: PoolSqliteData, req: HttpRequest) -> Result<i32, String> {
-    get_claims_from_request(req)
-        .and_then(|token| User::find_id(&pool.get().unwrap(), &*token.sub).ok())
-        .ok_or("User Not Authorization".to_owned())
+pub async fn get_user_id_from_request(
+    pool: &DataPoolSqlite,
+    req: HttpRequest,
+) -> anyhow::Result<i64> {
+    let username = get_claims_from_request(req)
+        .map(|tok| tok.sub)
+        .ok_or(anyhow!("Token Not Exist !"))?;
+    let user = User::find_id(pool, &*username).await?;
+    Ok(user)
 }
 
 pub fn get_claims_from_request(req: HttpRequest) -> Option<Token> {

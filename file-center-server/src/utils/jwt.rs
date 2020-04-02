@@ -10,7 +10,7 @@ use std::env;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Token {
     pub sub: String,
-    pub rol: i32,
+    pub rol: i64,
     pub iat: i64,
     pub exp: i64,
 }

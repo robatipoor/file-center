@@ -1,6 +1,7 @@
 use crate::models::role::Role;
 use crate::payloads::requests::LoginRequest;
 use crate::utils::hash::Bcrypt;
+use anyhow::anyhow;
 use log::info;
 use sqlx::decode::Decode;
 use sqlx::encode::Encode;
@@ -54,146 +55,111 @@ impl User {
     }
 
     pub async fn find_id(pool: &Pool<SqliteConnection>, username: &str) -> anyhow::Result<i64> {
-        let id:(i64,) = sqlx::query_as("SELECT id FROM users WHERE username = $1")
+        let id: (i64,) = sqlx::query_as("SELECT id FROM users WHERE username = $1")
             .bind(username)
             .fetch_one(pool)
             .await?;
         Ok(id.0)
     }
 
-    // pub fn find_id(pool: &Pool<SqliteConnection>, username: &str) -> anyhow::Result<i32> {
-    //     let mut stmt = conn.prepare("SELECT id FROM users WHERE username = ?1")?;
-    //     let users = stmt.query_map(&[username], |row| Ok(row.get(0)?))?;
-    //     for user in users {
-    //         return user;
-    //     }
-    //     Err(Error::InvalidQuery)
-    // }
-
-    pub async fn find_by_id(pool: &Pool<SqliteConnection>, user_id: usize) -> anyhow::Result<User> {
-        let id:(i64,) = sqlx::query_as("SELECT id FROM users WHERE username = $1")
-            .bind(username)
-            .fetch_one(pool)
-            .await?;
-        Ok(id)
+    pub async fn find_by_id(pool: &Pool<SqliteConnection>, user_id: i64) -> anyhow::Result<User> {
+        let user = sqlx::query_as::<_, User>(
+            "SELECT username ,password ,email,role_id FROM users WHERE id = $1",
+        )
+        .bind(user_id)
+        .fetch_one(pool)
+        .await?;
+        Ok(user)
     }
 
-    // pub fn find_by_id(pool: &Pool<SqliteConnection>, user_id: usize) -> anyhow::Result<User> {
-    //     let mut stmt =
-    //         conn.prepare("SELECT id, username, password, email, role_id FROM users WHERE id = ?1")?;
-    //     let users = stmt.query_map(&[user_id.to_string()], |row| {
-    //         Ok(User {
-    //             id: row.get(0)?,
-    //             username: row.get(1)?,
-    //             password: row.get(2)?,
-    //             email: row.get(3)?,
-    //             role_id: row.get(4)?,
-    //         })
-    //     })?;
-    //     for user in users {
-    //         return user;
-    //     }
-    //     Err(Error::InvalidQuery)
-    // }
+    pub async fn find_by_email(pool: &Pool<SqliteConnection>, email: &str) -> anyhow::Result<User> {
+        let user = sqlx::query_as::<_, User>(
+            "SELECT username ,password ,email,role_id FROM users WHERE email = $1",
+        )
+        .bind(email)
+        .fetch_one(pool)
+        .await?;
+        Ok(user)
+    }
 
-    // pub fn verify(
-    //     pool: &Pool<SqliteConnection>,
-    //     login: LoginRequest,
-    // ) -> anyhow::Result<User, String> {
-    //     let user = User::find_by_username(conn, &*login.username);
-    //     if let Ok(u) = user {
-    //         if Bcrypt::verify(&*login.password, &*u.password) {
-    //             Ok(u)
-    //         } else {
-    //             Err("User Not Valid!".to_owned())
-    //         }
-    //     } else {
-    //         Err("User Not Exist!".to_owned())
-    //     }
-    // }
+    pub async fn find_by_username(
+        pool: &Pool<SqliteConnection>,
+        username: &str,
+    ) -> anyhow::Result<User> {
+        let user = sqlx::query_as::<_, User>(
+            "SELECT username ,password ,email,role_id FROM users WHERE username = $1",
+        )
+        .bind(username)
+        .fetch_one(pool)
+        .await?;
+        Ok(user)
+    }
 
-    // pub fn find_by_email(pool: &Pool<SqliteConnection>, email: &str) -> anyhow::Result<User> {
-    //     let mut stmt = conn
-    //         .prepare("SELECT id, username, password, email, role_id FROM users WHERE email = ?1")?;
-    //     let users = stmt.query_map(&[email], |row| {
-    //         Ok(User {
-    //             id: row.get(0)?,
-    //             username: row.get(1)?,
-    //             password: row.get(2)?,
-    //             email: row.get(3)?,
-    //             role_id: row.get(4)?,
-    //         })
-    //     })?;
-    //     for user in users {
-    //         return user;
-    //     }
-    //     Err(Error::InvalidQuery)
-    // }
+    pub async fn find_all(pool: &Pool<SqliteConnection>) -> anyhow::Result<Vec<User>> {
+        let users = sqlx::query_as::<_, User>(
+            "SELECT username ,password ,email,role_id FROM users WHERE username = $1",
+        )
+        .fetch_all(pool)
+        .await?;
+        Ok(users)
+    }
 
-    // pub fn find_by_username(pool: &Pool<SqliteConnection>, username: &str) -> anyhow::Result<User> {
-    //     let mut stmt = conn.prepare(
-    //         "SELECT id, username, password, email, role_id FROM users WHERE username = ?1",
-    //     )?;
-    //     let users = stmt.query_map(&[username], |row| {
-    //         Ok(User {
-    //             id: row.get(0)?,
-    //             username: row.get(1)?,
-    //             password: row.get(2)?,
-    //             email: row.get(3)?,
-    //             role_id: row.get(4)?,
-    //         })
-    //     })?;
-    //     for user in users {
-    //         return user;
-    //     }
-    //     Err(Error::InvalidQuery)
-    // }
+    pub async fn verify(
+        pool: &Pool<SqliteConnection>,
+        login: LoginRequest,
+    ) -> anyhow::Result<User> {
+        let user = User::find_by_username(pool, &*login.username).await?;
+        if Bcrypt::verify(&*login.password, &*user.password) {
+            Ok(user)
+        } else {
+            Err(anyhow!("User Not Verify"))
+        }
+    }
 
-    // pub fn find_all(pool: &Pool<SqliteConnection>) -> anyhow::Result<Vec<User>> {
-    //     let mut stmt = conn.prepare("SELECT id, username, password ,email ,role_id FROM users")?;
-    //     let users = stmt.query_map(params![], |row| {
-    //         Ok(User {
-    //             id: row.get(0)?,
-    //             username: row.get(1)?,
-    //             password: row.get(2)?,
-    //             email: row.get(3)?,
-    //             role_id: row.get(4)?,
-    //         })
-    //     })?;
-    //     Ok(users.into_iter().flat_map(|r| r).collect::<Vec<User>>())
-    // }
+    pub async fn exist(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<bool> {
+        let id: (i64,) = sqlx::query_as(
+            r#"SELECT EXISTS (SELECT id FROM users WHERE username = $1 OR email = $2)"#,
+        )
+        .bind(&self.username)
+        .bind(&self.email)
+        .fetch_one(pool)
+        .await?;
+        Ok(id.0 > 0)
+    }
 
-    // pub fn exist(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<bool> {
-    //     let mut stmt =
-    //         conn.prepare("SELECT username FROM users WHERE username = ?1 OR email = ?2")?;
-    //     let result = stmt.exists(&[&self.username, &self.email]);
-    //     info!(
-    //         "User {} with email {} exist => {:?}",
-    //         self.username, self.email, result
-    //     );
-    //     return result;
-    // }
+    pub async fn update(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<u64> {
+        let row_affected = sqlx::query!(
+            r#"UPDATE users SET username = $1 ,password = $2 ,email = $3, role_id = $4 WHERE id = $5"#,
+             self.username,self.password,self.email,self.role_id,&self.id)
+            .execute(pool)
+            .await?;
+        Ok(row_affected)
+    }
 
-    // pub fn update(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<usize> {
-    //     let id = conn.execute("UPDATE FROM users SET username = ?1 password = ,?2 email = ?3, role_name = ?4 WHERE id = ?5", &[&self.username,&self.password,&self.email,&self.role_id.to_string(),&self.id.to_string()])?;
-    //     Ok(id)
-    // }
+    pub async fn delete(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<u64> {
+        let row_affected = sqlx::query!(r#"DELETE FROM users WHERE id = $1"#, self.id)
+            .execute(pool)
+            .await?;
+        Ok(row_affected)
+    }
 
-    // pub fn delete(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<usize> {
-    //     let id = conn.execute("DELETE FROM users WHERE id = ?1", &[&self.id])?;
-    //     Ok(id)
-    // }
+    pub async fn delete_by_email(
+        pool: &Pool<SqliteConnection>,
+        email: String,
+    ) -> anyhow::Result<u64> {
+        let row_affected = sqlx::query!(r#"DELETE FROM users WHERE email = $1"#, email)
+            .execute(pool)
+            .await?;
+        Ok(row_affected)
+    }
 
-    // pub fn delete_by_email(pool: &Pool<SqliteConnection>, email: String) -> anyhow::Result<usize> {
-    //     let id = conn.execute("DELETE FROM users WHERE email = ?1", &[email])?;
-    //     Ok(id)
-    // }
-
-    // pub fn delete_by_username(
-    //     pool: &Pool<SqliteConnection>,
-    //     username: String,
-    // ) -> anyhow::Result<usize> {
-    //     let id = conn.execute("DELETE FROM users WHERE username = ?1", &[username])?;
-    //     Ok(id)
-    // }
+    pub async fn delete_by_username(
+        pool: &Pool<SqliteConnection>,
+        username: &str,
+    ) -> anyhow::Result<u64> {
+        let row_affected = sqlx::query!(r#"DELETE FROM users WHERE username = $1"#, username)
+            .execute(pool)
+            .await?;
+        Ok(row_affected)
+    }
 }

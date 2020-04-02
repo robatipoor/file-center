@@ -14,6 +14,8 @@ extern crate strum;
 extern crate uuid;
 #[macro_use]
 extern crate strum_macros;
+#[macro_use]
+extern crate anyhow;
 
 mod api;
 mod config;

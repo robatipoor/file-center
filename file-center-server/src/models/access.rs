@@ -1,26 +1,28 @@
+use sqlx::decode::Decode;
+use sqlx::encode::Encode;
 use sqlx::prelude::*;
-use sqlx::{Pool, SqliteConnection, SqlitePool};
+use sqlx::sqlite::SqliteTypeInfo;
+use sqlx::Row;
+use sqlx::{Pool, SqliteConnection};
+use sqlx::{Sqlite, Type};
+use std::string::ToString;
 use serde::{Deserialize, Serialize};
-use std::fmt;
 
-#[derive(sqlx::FromRow,Debug)]
+#[derive(sqlx::FromRow, Debug)]
 pub struct Access {
     pub id: i32,
     pub access_type: AccessType,
 }
 
-#[derive(Debug, Deserialize, Serialize, Copy, Clone)]
+#[derive(Debug, Decode, Encode, Copy, Clone, Display,Serialize, Deserialize)]
 pub enum AccessType {
     Read,
     Write,
 }
 
-impl fmt::Display for AccessType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            AccessType::Read => write!(f, "READ"),
-            AccessType::Write => write!(f, "WRITE"),
-        }
+impl Type<Sqlite> for AccessType {
+    fn type_info() -> SqliteTypeInfo {
+        <str as Type<Sqlite>>::type_info()
     }
 }
 
@@ -39,52 +41,42 @@ impl From<String> for AccessType {
 }
 
 impl Access {
-    pub fn new(access_type: AccessType) -> Access {
-        Access {
+    pub async fn new(access_type: AccessType) -> anyhow::Result<Access> {
+        Ok(Access {
             id: access_type as i32,
             access_type,
-        }
+        })
     }
 
-    pub fn find_by_name(conn: &Connection, access_type: AccessType) -> Result<Access> {
-        let mut stmt = conn.prepare("SELECT id, access_type FROM access WHERE access_type = ?1")?;
-        let access = stmt.query_map(&[access_type.to_string()], |row| {
-            Ok(Access {
-                id: row.get(0)?,
-                access_type: row.get::<_, String>(1)?.into(),
-            })
-        })?;
-        for ac in access {
-            return ac;
-        }
-        Err(Error::InvalidQuery)
+    pub async fn find_by_name(
+        pool: &Pool<SqliteConnection>,
+        access_type: AccessType,
+    ) -> anyhow::Result<Access> {
+        let access = sqlx::query_as::<_, Access>(
+            "SELECT id, access_type FROM access WHERE access_type = $1",
+        )
+        .bind(access_type.to_string())
+        .fetch_one(pool)
+        .await?;
+        Ok(access)
     }
 
-    pub fn find_by_id(conn: &Connection, access_id: usize) -> Result<Access> {
-        let mut stmt = conn.prepare("SELECT id, access_type FROM access WHERE id = ?1")?;
-        let access = stmt.query_map(&[access_id.to_string()], |row| {
-            Ok(Access {
-                id: row.get(0)?,
-                access_type: row.get::<_, String>(1)?.into(),
-            })
-        })?;
-        for ac in access {
-            return ac;
-        }
-        Err(Error::InvalidQuery)
+    pub async fn find_by_id(
+        pool: &Pool<SqliteConnection>,
+        access_id: i64,
+    ) -> anyhow::Result<Access> {
+        let access =
+            sqlx::query_as::<_, Access>("SELECT id, access_type FROM access WHERE id = $1")
+                .bind(access_id)
+                .fetch_one(pool)
+                .await?;
+        Ok(access)
     }
 
-    pub fn find_all(conn: &Connection) -> Result<Vec<Access>> {
-        let mut stmt = conn.prepare("SELECT id,access_type FROM access")?;
-        let all_access = stmt.query_map(params![], |row| {
-            Ok(Access {
-                id: row.get(0)?,
-                access_type: row.get::<_, String>(1)?.into(),
-            })
-        })?;
-        Ok(all_access
-            .into_iter()
-            .flat_map(|r| r)
-            .collect::<Vec<Access>>())
+    pub async fn find_all(pool: &Pool<SqliteConnection>) -> anyhow::Result<Vec<Access>> {
+        let access = sqlx::query_as::<_, Access>("SELECT id, access_type FROM access ")
+            .fetch_all(pool)
+            .await?;
+        Ok(access)
     }
 }
