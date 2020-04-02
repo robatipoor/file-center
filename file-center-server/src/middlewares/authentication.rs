@@ -12,7 +12,6 @@ use futures::{
     Future,
 };
 use log::*;
-use sqlx::prelude::*;
 use sqlx::{Pool, SqliteConnection};
 use std::{
     pin::Pin,

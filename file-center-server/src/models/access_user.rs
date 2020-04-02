@@ -161,10 +161,18 @@ impl AccessUser {
         Ok(row_affected)
     }
 
-    pub async fn delete(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query!(r#"DELETE FROM access_users WHERE id = $1"#, self.id)
-            .execute(pool)
-            .await?;
+    pub async fn delete(
+        pool: &Pool<SqliteConnection>,
+        user_id: i64,
+        file_id: i64,
+    ) -> anyhow::Result<u64> {
+        let row_affected = sqlx::query!(
+            r#"DELETE FROM access_users WHERE user_id = $1 AND file_id = $2"#,
+            user_id,
+            file_id
+        )
+        .execute(pool)
+        .await?;
         Ok(row_affected)
     }
 }

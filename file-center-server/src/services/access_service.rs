@@ -39,22 +39,40 @@ pub async fn is_write_access(
     AccessUser::is_user_access(pool, user_id, file_id, access_id).await
 }
 
-pub async fn add_access(pool: &DataPoolSqlite, access_user: AccessUser) -> anyhow::Result<i64> {
-    access_user.save(pool).await
+pub async fn add_access(
+    pool: &DataPoolSqlite,
+    access_user: AccessUser,
+) -> anyhow::Result<ResponseBody<i64>> {
+    let result = access_user.save(pool).await;
+    if let Ok(i) = result {
+        return Ok(ResponseBody::new(true, "Add Acess".to_owned(), Some(i)));
+    } else {
+        return Err(anyhow!("Unsuccess"));
+    }
 }
 
 pub async fn update_access(
     pool: &DataPoolSqlite,
     access_user_id: i64,
     access_id: i64,
-) -> anyhow::Result<u64> {
-    AccessUser::update_access(pool, access_user_id, access_id).await
+) -> anyhow::Result<ResponseBody<u64>> {
+    let res = AccessUser::update_access(pool, access_user_id, access_id).await;
+    if let Ok(_) = res {
+        Ok(ResponseBody::new(true, "Update Access".to_owned(), None))
+    } else {
+        Err(anyhow!("Update Access"))
+    }
 }
 
 pub async fn delete_access(
     pool: &DataPoolSqlite,
     file_id: i64,
     user_id: i64,
-) -> anyhow::Result<()> {
-    todo!()
+) -> anyhow::Result<ResponseBody<String>> {
+    let result = AccessUser::delete(pool, user_id, file_id).await?;
+    if result > 0 {
+        Ok(ResponseBody::new(true, "Delete Access".to_owned(), None))
+    } else {
+        Err(anyhow!("Delete UnSuccess!"))
+    }
 }
