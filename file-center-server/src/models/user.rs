@@ -87,7 +87,7 @@ impl User {
         username: &str,
     ) -> anyhow::Result<User> {
         let user = sqlx::query_as::<_, User>(
-            "SELECT username ,password ,email,role_id FROM users WHERE username = $1",
+            "SELECT id ,username ,password ,email ,role_id FROM users WHERE username = $1",
         )
         .bind(username)
         .fetch_one(pool)

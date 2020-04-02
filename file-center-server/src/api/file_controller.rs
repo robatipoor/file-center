@@ -13,13 +13,12 @@ use std::path::Path;
 use uuid::Uuid;
 
 type PoolSqliteData = web::Data<Pool<SqliteConnection>>;
-type ResutResponse = Result<HttpResponse>;
 
 pub async fn upload_file(
     pool: PoolSqliteData,
     mut payload: Multipart,
     req: HttpRequest,
-) -> ResutResponse {
+) -> Result<HttpResponse> {
     // iterate over multipart stream
     let user_id = get_user_id_from_request(&pool.clone(), req).await.unwrap();
     let path = env::var("PATH_FILE").unwrap();
@@ -33,7 +32,7 @@ pub async fn upload_file(
         let file = File::new(&*filename, filepath.to_str().unwrap(), &*uuid, user_id)
             .await
             .unwrap();
-        file.save(&conn);
+        file.save(&conn).await.unwrap();
         // File::create is blocking operation, use threadpool
         let mut f = web::block(move || {
             return std::fs::File::create(filepath);
@@ -50,7 +49,7 @@ pub async fn upload_file(
     Ok(HttpResponse::Ok().into())
 }
 
-pub async fn list_file(pool: PoolSqliteData, req: HttpRequest) -> ResutResponse {
+pub async fn list_file(pool: PoolSqliteData, req: HttpRequest) -> Result<HttpResponse> {
     let user_id = get_user_id_from_request(&pool.clone(), req).await;
     if let Err(e) = user_id {
         return Ok(HttpResponse::Ok().body(e.to_string()));
@@ -71,7 +70,7 @@ pub async fn download_file(pool: PoolSqliteData, req: HttpRequest) -> Result<Nam
     Ok(NamedFile::open(path)?)
 }
 
-pub async fn help_upload_file() -> ResutResponse {
-    let text = r#" Post File "#;
+pub async fn help_upload_file() -> Result<HttpResponse> {
+    let text = r#"Post File Manual Page"#;
     Ok(HttpResponse::Ok().body(text))
 }
