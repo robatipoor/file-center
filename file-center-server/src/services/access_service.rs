@@ -60,7 +60,7 @@ pub async fn add_access(
         }
     }
     error!("");
-    return Err(anyhow!("Unsuccess"));
+    Err(anyhow!("Unsuccess"))
 }
 
 pub async fn delete_access(

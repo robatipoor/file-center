@@ -30,9 +30,9 @@ impl From<String> for AccessType {
         use AccessType::*;
         let input_uppercase = input.to_uppercase();
         if input_uppercase == Read.to_string() {
-            return Read;
+            Read
         } else if input_uppercase == Write.to_string() {
-            return Write;
+             Write
         } else {
             panic!("input invalid !");
         }

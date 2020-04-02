@@ -34,11 +34,9 @@ pub async fn upload_file(
             .unwrap();
         file.save(&conn).await.unwrap();
         // File::create is blocking operation, use threadpool
-        let mut f = web::block(move || {
-            return std::fs::File::create(filepath);
-        })
-        .await
-        .unwrap();
+        let mut f = web::block(move || std::fs::File::create(filepath))
+            .await
+            .unwrap();
         // Field in turn is stream of *Bytes* object
         while let Some(chunk) = field.next().await {
             let data = chunk.unwrap();

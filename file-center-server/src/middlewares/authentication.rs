@@ -90,7 +90,7 @@ pub async fn get_user_id_from_request(
 ) -> anyhow::Result<i64> {
     let username = get_claims_from_request(req)
         .map(|tok| tok.sub)
-        .ok_or(anyhow!("Token Not Exist !"))?;
+        .ok_or_else(|| anyhow!("Token Not Exist !"))?;
     let user = User::find_id(pool, &*username).await?;
     Ok(user)
 }
@@ -117,5 +117,5 @@ pub fn get_token_from_header(header: &HeaderMap) -> Option<String> {
             }
         }
     }
-    return None;
+    None
 }

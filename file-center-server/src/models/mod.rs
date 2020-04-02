@@ -87,7 +87,7 @@ impl DataBase {
     }
 
     pub async fn get_conn_pool(self) -> Pool<SqliteConnection> {
-        return self.pool;
+        self.pool
     }
 
     async fn open_conn_pool() -> anyhow::Result<Pool<SqliteConnection>> {
