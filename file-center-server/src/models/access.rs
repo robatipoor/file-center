@@ -1,12 +1,11 @@
+use serde::{Deserialize, Serialize};
 use sqlx::decode::Decode;
 use sqlx::encode::Encode;
 use sqlx::prelude::*;
 use sqlx::sqlite::SqliteTypeInfo;
-use sqlx::Row;
 use sqlx::{Pool, SqliteConnection};
 use sqlx::{Sqlite, Type};
 use std::string::ToString;
-use serde::{Deserialize, Serialize};
 
 #[derive(sqlx::FromRow, Debug)]
 pub struct Access {
@@ -14,7 +13,7 @@ pub struct Access {
     pub access_type: AccessType,
 }
 
-#[derive(Debug, Decode, Encode, Copy, Clone, Display,Serialize, Deserialize)]
+#[derive(Debug, Decode, Encode, Copy, Clone, Display, Serialize, Deserialize)]
 pub enum AccessType {
     Read,
     Write,

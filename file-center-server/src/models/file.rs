@@ -33,6 +33,7 @@ impl File {
         let record: (i64,) = sqlx::query_as("SELECT last_insert_rowid()")
             .fetch_one(pool)
             .await?;
+        info!("");
         Ok(record.0)
     }
 
@@ -41,6 +42,7 @@ impl File {
             .bind(link)
             .fetch_one(pool)
             .await?;
+        info!("");
         Ok(id.0)
     }
 
@@ -51,6 +53,7 @@ impl File {
         .bind(file_id)
         .fetch_one(pool)
         .await?;
+        info!("");
         Ok(file)
     }
 
@@ -62,6 +65,7 @@ impl File {
             .bind(link)
             .fetch_one(pool)
             .await?;
+        info!("");
         Ok(path.0)
     }
 
@@ -72,6 +76,7 @@ impl File {
         .bind(link)
         .fetch_one(pool)
         .await?;
+        info!("");
         Ok(file)
     }
 
@@ -85,6 +90,7 @@ impl File {
         .bind(user_id)
         .fetch_all(pool)
         .await?;
+        info!("");
         Ok(files)
     }
 
@@ -96,6 +102,7 @@ impl File {
             .bind(user_id)
             .fetch_all(pool)
             .await?;
+        info!("");
         Ok(links.iter().map(|l| l.0.to_string()).collect())
     }
 
@@ -111,6 +118,7 @@ impl File {
         .bind(link)
         .fetch_one(pool)
         .await?;
+        info!("");
         Ok(id.0 > 0)
     }
 
@@ -125,6 +133,7 @@ impl File {
         )
         .execute(pool)
         .await?;
+        info!("");
         Ok(row_affected)
     }
 
@@ -132,6 +141,7 @@ impl File {
         let row_affected = sqlx::query!(r#"DELETE FROM files WHERE id = $1"#, self.id)
             .execute(pool)
             .await?;
+        info!("");
         Ok(row_affected)
     }
 
@@ -139,6 +149,7 @@ impl File {
         let row_affected = sqlx::query!(r#"DELETE FROM files WHERE link = $1"#, link)
             .execute(pool)
             .await?;
+        info!("");
         Ok(row_affected)
     }
 
@@ -146,6 +157,7 @@ impl File {
         let row_affected = sqlx::query!(r#"DELETE FROM files WHERE path = $1"#, path)
             .execute(pool)
             .await?;
+        info!("");
         Ok(row_affected)
     }
 }

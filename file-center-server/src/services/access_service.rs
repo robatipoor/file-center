@@ -1,12 +1,11 @@
 use crate::models::access::AccessType;
 use crate::models::access_user::AccessUser;
 use crate::models::file::File;
-use crate::models::role::{Role, RoleName};
 use crate::models::user::User;
 use crate::payloads::responses::*;
 
+use actix_web::web;
 use actix_web::Result;
-use actix_web::{http::StatusCode, web};
 use log::{error, info};
 use sqlx::{Pool, SqliteConnection};
 
@@ -32,6 +31,7 @@ pub async fn is_write_access(
     user_id: i64,
 ) -> anyhow::Result<bool> {
     let access_id = AccessType::Write as i64;
+    info!("");
     AccessUser::is_user_access(pool, user_id, file_id, access_id).await
 }
 
@@ -59,6 +59,7 @@ pub async fn add_access(
             }
         }
     }
+    error!("");
     return Err(anyhow!("Unsuccess"));
 }
 
@@ -77,6 +78,7 @@ pub async fn delete_access(
             return Ok(ResponseBody::new(true, "Delete Access".to_owned(), None));
         }
     }
+    error!("");
     Err(anyhow!("Delete UnSuccess!"))
 }
 

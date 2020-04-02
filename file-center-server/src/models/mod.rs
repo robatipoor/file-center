@@ -5,7 +5,6 @@ pub mod role;
 pub mod user;
 
 use crate::utils::file::read_file;
-use sqlx::prelude::*;
 use sqlx::{Pool, SqliteConnection, SqlitePool};
 use std::env;
 use std::fmt;

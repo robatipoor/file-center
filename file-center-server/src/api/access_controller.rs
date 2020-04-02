@@ -3,6 +3,7 @@ use crate::payloads::requests::UpdateAccessRequest;
 use crate::services::access_service;
 use actix_web::{web, HttpResponse};
 use actix_web::{HttpRequest, Result};
+use log::{error, info};
 use sqlx::{Pool, SqliteConnection};
 
 type PoolSqliteData = web::Data<Pool<SqliteConnection>>;
@@ -25,8 +26,10 @@ pub async fn add_access(
     )
     .await;
     if let Ok(b) = result {
+        info!("");
         return Ok(HttpResponse::Ok().json(b));
     }
+    error!("");
     Ok(HttpResponse::Ok().body("nothing..."))
 }
 
@@ -47,7 +50,9 @@ pub async fn remove_access(
     )
     .await;
     if let Ok(r) = result {
+        info!("");
         return Ok(HttpResponse::Ok().json(r));
     }
+    error!("");
     Ok(HttpResponse::Ok().body("nothing..."))
 }

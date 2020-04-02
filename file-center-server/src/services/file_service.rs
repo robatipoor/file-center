@@ -1,15 +1,7 @@
-use crate::config::constants;
 use crate::models::access_user::AccessUser;
 use crate::models::file::File;
-use crate::models::role::{Role, RoleName};
-use crate::models::user::User;
-use crate::payloads::requests::*;
-use crate::payloads::responses::*;
-use crate::utils::jwt::Token;
-use actix_web::{http::StatusCode, web};
-use actix_web::{Error, Result};
+use actix_web::web;
 use log::{error, info};
-use serde_json::json;
 use sqlx::{Pool, SqliteConnection};
 
 type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
@@ -41,9 +33,11 @@ pub async fn download_path(
     } else {
         let access = AccessUser::user_has_access_by_link(pool, link, user_id).await?;
         if access {
+            info!("");
             return File::find_path_by_link(pool, link).await;
         }
     }
+    error!("");
     Err(anyhow!("user not access "))
 }
 

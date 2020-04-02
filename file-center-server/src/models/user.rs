@@ -3,13 +3,7 @@ use crate::payloads::requests::LoginRequest;
 use crate::utils::hash::Bcrypt;
 use anyhow::anyhow;
 use log::info;
-use sqlx::decode::Decode;
-use sqlx::encode::Encode;
 use sqlx::prelude::*;
-use sqlx::prelude::*;
-use sqlx::sqlite::SqliteTypeInfo;
-use sqlx::Row;
-use sqlx::{FromRow, Sqlite, Type};
 use sqlx::{Pool, SqliteConnection};
 
 #[derive(sqlx::FromRow, Debug)]
@@ -51,6 +45,7 @@ impl User {
         let record: (i64,) = sqlx::query_as("SELECT last_insert_rowid()")
             .fetch_one(pool)
             .await?;
+        info!("");
         Ok(record.0)
     }
 
