@@ -2,14 +2,14 @@ use sqlx::prelude::*;
 use sqlx::{Pool, SqliteConnection};
 #[derive(sqlx::FromRow, Debug)]
 pub struct AccessUser {
-    pub id: i32,
-    pub user_id: i32,
-    pub file_id: i32,
-    pub access_id: i32,
+    pub id: i64,
+    pub user_id: i64,
+    pub file_id: i64,
+    pub access_id: i64,
 }
 
 impl AccessUser {
-    pub async fn new(user_id: i32, file_id: i32, access_id: i32) -> anyhow::Result<AccessUser> {
+    pub async fn new(user_id: i64, file_id: i64, access_id: i64) -> anyhow::Result<AccessUser> {
         Ok(AccessUser {
             id: 0,
             user_id,
@@ -174,5 +174,20 @@ impl AccessUser {
         .execute(pool)
         .await?;
         Ok(row_affected)
+    }
+
+    pub async fn exist(
+        pool: &Pool<SqliteConnection>,
+        user_id: i64,
+        file_id: i64,
+    ) -> anyhow::Result<bool> {
+        let id: (i64,) = sqlx::query_as(
+            r#"SELECT EXISTS (SELECT id FROM access_users WHERE user_id = $1 OR file_id = $2)"#,
+        )
+        .bind(user_id)
+        .bind(file_id)
+        .fetch_one(pool)
+        .await?;
+        Ok(id.0 > 0)
     }
 }
