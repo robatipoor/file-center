@@ -54,12 +54,11 @@ impl User {
     }
 
     pub async fn find_id(pool: &Pool<SqliteConnection>, username: &str) -> anyhow::Result<i64> {
-        let id = sqlx::query("SELECT id FROM users WHERE username = $1")
+        let id:(i64,) = sqlx::query_as("SELECT id FROM users WHERE username = $1")
             .bind(username)
-            .map(|ro| ro.)
-            .fetch(pool)
+            .fetch_one(pool)
             .await?;
-        Ok(id)
+        Ok(id.0)
     }
 
     // pub fn find_id(pool: &Pool<SqliteConnection>, username: &str) -> anyhow::Result<i32> {
@@ -71,11 +70,10 @@ impl User {
     //     Err(Error::InvalidQuery)
     // }
 
-    pub fn find_by_id(pool: &Pool<SqliteConnection>, user_id: usize) -> anyhow::Result<User> {
-        let id = sqlx::query("SELECT id FROM users WHERE username = $1")
+    pub async fn find_by_id(pool: &Pool<SqliteConnection>, user_id: usize) -> anyhow::Result<User> {
+        let id:(i64,) = sqlx::query_as("SELECT id FROM users WHERE username = $1")
             .bind(username)
-            .map(|ro| ro.)
-            .fetch(pool)
+            .fetch_one(pool)
             .await?;
         Ok(id)
     }
