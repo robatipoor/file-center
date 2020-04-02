@@ -2,7 +2,6 @@
 extern crate actix_web;
 extern crate bcrypt;
 extern crate chrono;
-extern crate derive_new;
 extern crate dotenv;
 extern crate env_logger;
 extern crate futures;

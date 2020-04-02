@@ -3,14 +3,11 @@ use crate::models::access_user::AccessUser;
 use crate::models::file::File;
 use crate::models::user::User;
 use crate::payloads::responses::*;
-
 use actix_web::web;
-use actix_web::Result;
 use log::{error, info};
 use sqlx::{Pool, SqliteConnection};
 
 type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
-type ResultResponse = Result<TokenBodyResponse, ServiceError>;
 
 pub async fn is_owner(pool: &DataPoolSqlite, link: &str, user_id: i64) -> anyhow::Result<bool> {
     File::is_owner(pool, link, user_id).await
@@ -55,7 +52,7 @@ pub async fn add_access(
             let row_affected =
                 AccessUser::update_access(&pool, access_user_id, access as i64).await?;
             if row_affected == 1 {
-                return Ok(ResponseBody::new(true, "Add Access".to_owned(), None));
+                return Ok(ResponseBody::new(Status::SUCCESS, "Add Access"));
             }
         }
     }
@@ -75,22 +72,9 @@ pub async fn delete_access(
         let user_id = User::find_id(&pool, username).await?;
         let result = AccessUser::delete(pool, user_id, file_id).await?;
         if result > 0 {
-            return Ok(ResponseBody::new(true, "Delete Access".to_owned(), None));
+            return Ok(ResponseBody::new(Status::SUCCESS, "Delete Access"));
         }
     }
     error!("");
     Err(anyhow!("Delete UnSuccess!"))
-}
-
-pub async fn exist_access(
-    pool: &DataPoolSqlite,
-    file_id: i64,
-    user_id: i64,
-) -> anyhow::Result<ResponseBody<String>> {
-    let result = AccessUser::exist(pool, user_id, file_id).await?;
-    if result {
-        Ok(ResponseBody::new(true, "Delete Access".to_owned(), None))
-    } else {
-        Err(anyhow!("Delete UnSuccess!"))
-    }
 }

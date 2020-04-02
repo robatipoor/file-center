@@ -1,28 +1,53 @@
 use actix_web::{http::StatusCode, HttpResponse};
-use derive_new::new;
 use serde::{Deserialize, Serialize};
+use std::string::ToString;
 
-#[derive(Serialize, Deserialize, new)]
-pub struct TokenBodyResponse {
+#[derive(Debug, Serialize, Deserialize, Display)]
+pub enum Status {
+    SUCCESS,
+    UNSUCCESS,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TokenResponse {
     pub token: String,
     pub token_type: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, new)]
+impl TokenResponse {
+    pub fn new(token: &str) -> Self {
+        TokenResponse {
+            token: token.to_string(),
+            token_type: "bearer".to_owned(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ResponseBody<T> {
-    pub status: bool,
+    pub status: Status,
     pub message: String,
     pub data: Option<T>,
 }
 
-#[derive(Debug, new)]
-pub struct ServiceError {
-    pub status: StatusCode,
-    pub message: String,
-}
+impl<T> ResponseBody<T>
+where
+    T: Serialize,
+{
+    pub fn new(status: Status, msg: &str) -> Self {
+        ResponseBody {
+            status: status,
+            message: msg.to_string(),
+            data: None,
+        }
+    }
 
-impl ServiceError {
-    pub fn response(&self) -> HttpResponse {
-        HttpResponse::build(self.status).json(&self.message)
+    pub fn add_data(mut self, data: T) -> Self {
+        self.data = Some(data);
+        self
+    }
+
+    pub fn to_response(&self) -> HttpResponse {
+        HttpResponse::build(StatusCode::OK).json(self)
     }
 }

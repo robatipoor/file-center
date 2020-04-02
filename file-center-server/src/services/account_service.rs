@@ -5,16 +5,17 @@ use crate::payloads::responses::*;
 use crate::utils::jwt::Token;
 use actix_web::web;
 use sqlx::{Pool, SqliteConnection};
+
 type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
-type ResultResponse = actix_web::Result<TokenBodyResponse, ServiceError>;
 
 pub async fn login(
     login: LoginRequest,
     pool: &DataPoolSqlite,
-) -> anyhow::Result<TokenBodyResponse> {
+) -> anyhow::Result<ResponseBody<TokenResponse>> {
     let user_verified = User::verify(pool, login).await?;
     let token = Token::new(user_verified).encode()?;
-    Ok(TokenBodyResponse::new(token, "bearer".to_owned()))
+    let token_response = TokenResponse::new(token.as_str());
+    Ok(ResponseBody::new(Status::SUCCESS, "login").add_data(token_response))
 }
 
 pub async fn register(
@@ -25,11 +26,8 @@ pub async fn register(
     let user = User::new(&*req.username, &*req.password, &*req.email, role).await?;
     if !user.exist(pool).await? {
         let result_save = user.save(pool).await?;
-        let response = ResponseBody::new(
-            true,
-            "User Register !".to_owned(),
-            Some(result_save.to_string()),
-        );
+        let response =
+            ResponseBody::new(Status::SUCCESS, "User Register !").add_data(result_save.to_string());
         return Ok(response);
     }
     Err(anyhow!("User Exist !"))

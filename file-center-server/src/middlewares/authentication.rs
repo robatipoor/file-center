@@ -1,5 +1,7 @@
 use crate::models::user::User;
-use crate::{config::constants, payloads::responses::ResponseBody, utils::jwt::Token};
+use crate::payloads::responses::{ResponseBody, Status};
+use crate::{config::constants, utils::jwt::Token};
+
 use actix_service::{Service, Transform};
 use actix_web::http::header::HeaderMap;
 use actix_web::HttpRequest;
@@ -77,7 +79,7 @@ where
         } else {
             Box::pin(async move {
                 let resp: ResponseBody<String> =
-                    ResponseBody::new(false, constants::MESSAGE_INVALID_TOKEN.to_owned(), None);
+                    ResponseBody::new(Status::SUCCESS, constants::MESSAGE_INVALID_TOKEN);
                 Ok(req.into_response(HttpResponse::Unauthorized().json(resp).into_body()))
             })
         }
