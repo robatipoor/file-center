@@ -47,7 +47,7 @@ where
         self
     }
 
-    pub fn to_response(&self) -> HttpResponse {
-        HttpResponse::build(StatusCode::OK).json(self)
+    pub fn to_response(&self, status: StatusCode) -> HttpResponse {
+        HttpResponse::build(status).json(self)
     }
 }
