@@ -38,7 +38,7 @@ async fn main() -> std::io::Result<()> {
     dotenv::dotenv().unwrap();
     env_logger::init();
     let port = env::var("PORT").unwrap();
-    let addr = format!("127.0.0.1:{}", port);
+    let addr = format!("0.0.0.0:{}", port);
     let db = DataBase::migrate().await.unwrap();
     let pool = db.get_conn_pool().await;
     info!("Start Server {}", addr);
