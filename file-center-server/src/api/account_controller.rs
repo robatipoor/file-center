@@ -11,16 +11,16 @@ pub async fn register(
 ) -> Result<HttpResponse> {
     let result = account_service::register(req.into_inner(), &pool).await;
     match result {
-        Ok(r) => Ok(HttpResponse::Ok().json(r)),
-        Err(e) => Ok(HttpResponse::Ok().json(e.to_string())),
+        Ok(r) => Ok(HttpResponse::Ok().content_type("application/json").json(r)),
+        Err(e) => Ok(HttpResponse::Ok().content_type("application/json").json(e.to_string())),
     }
 }
 
 pub async fn login(req: web::Json<LoginRequest>, pool: DataPoolSqlite) -> Result<HttpResponse> {
     let result = account_service::login(req.into_inner(), &pool).await;
     match result {
-        Ok(r) => Ok(HttpResponse::Ok().json(r)),
-        Err(e) => Ok(HttpResponse::Ok().json(e.to_string())),
+        Ok(r) => Ok(HttpResponse::Ok().content_type("application/json").json(r)),
+        Err(e) => Ok(HttpResponse::Ok().content_type("application/json").json(e.to_string())),
     }
 }
 

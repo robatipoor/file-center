@@ -15,7 +15,7 @@ pub async fn add_access(
 ) -> Result<HttpResponse> {
     let user_id = get_user_id_from_request(&pool.clone(), req).await;
     if let Err(e) = user_id {
-        return Ok(HttpResponse::Ok().body(e.to_string()));
+        return Ok(HttpResponse::Ok().content_type("application/json").body(e.to_string()));
     }
     let result = access_service::add_access(
         &pool,
@@ -27,10 +27,10 @@ pub async fn add_access(
     .await;
     if let Ok(b) = result {
         info!("");
-        return Ok(HttpResponse::Ok().json(b));
+        return Ok(HttpResponse::Ok().content_type("application/json").json(b));
     }
     error!("");
-    Ok(HttpResponse::Ok().body("nothing..."))
+    Ok(HttpResponse::Ok().content_type("application/json").body("nothing..."))
 }
 
 pub async fn remove_access(
@@ -40,7 +40,7 @@ pub async fn remove_access(
 ) -> Result<HttpResponse> {
     let user_id = get_user_id_from_request(&pool.clone(), req).await;
     if let Err(e) = user_id {
-        return Ok(HttpResponse::Ok().body(e.to_string()));
+        return Ok(HttpResponse::Ok().content_type("application/json").body(e.to_string()));
     }
     let result = access_service::delete_access(
         &pool,
@@ -51,8 +51,8 @@ pub async fn remove_access(
     .await;
     if let Ok(r) = result {
         info!("");
-        return Ok(HttpResponse::Ok().json(r));
+        return Ok(HttpResponse::Ok().content_type("application/json").json(r));
     }
     error!("");
-    Ok(HttpResponse::Ok().body("nothing..."))
+    Ok(HttpResponse::Ok().content_type("application/json").body("nothing..."))
 }

@@ -50,13 +50,13 @@ pub async fn upload_file(
 pub async fn list_file(pool: PoolSqliteData, req: HttpRequest) -> Result<HttpResponse> {
     let user_id = get_user_id_from_request(&pool.clone(), req).await;
     if let Err(e) = user_id {
-        return Ok(HttpResponse::Ok().body(e.to_string()));
+        return Ok(HttpResponse::Ok().content_type("application/json").body(e.to_string()));
     }
     let list = file_service::list_link_files(&pool, user_id.unwrap()).await;
     if let Err(e) = list {
-        return Ok(HttpResponse::Ok().body(e.to_string()));
+        return Ok(HttpResponse::Ok().content_type("application/json").body(e.to_string()));
     }
-    Ok(HttpResponse::Ok().json(list.unwrap()))
+    Ok(HttpResponse::Ok().content_type("application/json").json(list.unwrap()))
 }
 
 pub async fn download_file(pool: PoolSqliteData, req: HttpRequest) -> Result<NamedFile> {
@@ -68,7 +68,7 @@ pub async fn download_file(pool: PoolSqliteData, req: HttpRequest) -> Result<Nam
     Ok(NamedFile::open(path)?)
 }
 
-pub async fn help_upload_file() -> Result<HttpResponse> {
+pub async fn manual_upload_file() -> Result<HttpResponse> {
     let text = r#"Post File Manual Page"#;
-    Ok(HttpResponse::Ok().body(text))
+    Ok(HttpResponse::Ok().content_type("application/json").body(text))
 }
