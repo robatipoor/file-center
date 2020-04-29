@@ -13,15 +13,18 @@ pub async fn add_access(
     req: HttpRequest,
     access_req: web::Json<UpdateAccessRequest>,
 ) -> Result<HttpResponse> {
-    let user_id = get_user_id_from_request(&pool.clone(), req).await;
-    if let Err(e) = user_id {
-        return Ok(HttpResponse::Ok()
-            .content_type("application/json")
-            .body(e.to_string()));
-    }
+    let user_id = match get_user_id_from_request(&pool.clone(), req).await {
+        Ok(id) => id,
+        Err(e) => {
+            error!("un autherized user {}", e);
+            return Ok(HttpResponse::Unauthorized()
+                .content_type("application/json")
+                .body("User not Autherized"));
+        }
+    };
     let result = access_service::add_access(
         &pool,
-        user_id.unwrap(),
+        user_id,
         &*access_req.link,
         &*access_req.username,
         access_req.access_type,
@@ -42,15 +45,18 @@ pub async fn remove_access(
     req: HttpRequest,
     access_req: web::Json<UpdateAccessRequest>,
 ) -> Result<HttpResponse> {
-    let user_id = get_user_id_from_request(&pool.clone(), req).await;
-    if let Err(e) = user_id {
-        return Ok(HttpResponse::Ok()
-            .content_type("application/json")
-            .body(e.to_string()));
-    }
+    let user_id = match get_user_id_from_request(&pool.clone(), req).await {
+        Ok(id) => id,
+        Err(e) => {
+            error!("un autherized user {}", e);
+            return Ok(HttpResponse::Unauthorized()
+                .content_type("application/json")
+                .body("User not Autherized"));
+        }
+    };
     let result = access_service::delete_access(
         &pool,
-        user_id.unwrap(),
+        user_id,
         &*access_req.link,
         &*access_req.username,
     )

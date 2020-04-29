@@ -1,7 +1,7 @@
 use crate::models::access_user::AccessUser;
 use crate::models::file::File;
 use actix_web::web;
-use log::{error, info};
+use log::{debug, error, info};
 use sqlx::{Pool, SqliteConnection};
 
 type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
@@ -27,17 +27,22 @@ pub async fn download_path(
     link: &str,
     user_id: i64,
 ) -> anyhow::Result<String> {
-    let is_owner = File::is_owner(pool, link, user_id).await?;
-    if is_owner {
-        return File::find_path_by_link(pool, link).await;
-    } else {
-        let access = AccessUser::user_has_access_by_link(pool, link, user_id).await?;
-        if access {
-            info!("");
-            return File::find_path_by_link(pool, link).await;
+    match File::find_path_by_link(pool, link).await {
+        Ok(path) => {
+            if File::is_owner(pool, link, user_id).await? {
+                debug!("user id {} is owner link file {}", user_id, link);
+                return Ok(path);
+            } else if AccessUser::user_has_access_by_link(pool, link, user_id).await? {
+                debug!("user id {} is has access link file {}", user_id, link);
+                return Ok(path);
+            }
+        }
+        Err(e) => {
+            error!("file not exist error message {}", e);
+            return Err(anyhow!("file not exist error message : {}", e));
         }
     }
-    error!("");
+    error!("user not access ");
     Err(anyhow!("user not access "))
 }
 
