@@ -74,13 +74,14 @@ impl AccessUser {
 
     pub async fn find_id(
         pool: &Pool<SqliteConnection>,
-        user_id: i64,
-        file_id: i64,
+        username: &str,
+        link: &str,
     ) -> anyhow::Result<i64> {
         let access: (i64,) =
-            sqlx::query_as("SELECT id FROM access_users WHERE user_id = $1 AND file_id = $2")
-                .bind(user_id)
-                .bind(file_id)
+            sqlx::query_as(
+                "SELECT id FROM access_users ac INNER JOIN users us ON us.user_id = ac.user_id INNER JOIN files fi ON fi.file_id = ac.file_id WHERE us.username = $1 AND fi.link = $2")
+                .bind(username)
+                .bind(link)
                 .fetch_one(pool)
                 .await?;
         Ok(access.0)
