@@ -38,7 +38,7 @@ pub async fn is_write_access(
     AccessUser::is_user_access(pool, user_id, file_id, WRITE_ACCESS_ID).await
 }
 
-pub async fn add_or_update_access(
+pub async fn add_or_update_access_service(
     pool: &DataPoolSqlite,
     owner_id: i64,
     link: &str,
@@ -69,7 +69,7 @@ pub async fn add_or_update_access(
     }
 }
 
-pub async fn delete_access(
+pub async fn remove_access_service(
     pool: &DataPoolSqlite,
     owner_id: i64,
     link: &str,

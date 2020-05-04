@@ -1,7 +1,7 @@
 use crate::models::access_user::AccessUser;
 use crate::models::file::File;
 use actix_web::web;
-use log::{debug, error, info};
+use log::{debug, error};
 use sqlx::{Pool, SqliteConnection};
 
 type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;

@@ -1,12 +1,12 @@
 use actix_web::web;
 
-use crate::api::access_controller::*;
-use crate::api::account_controller::*;
-use crate::api::file_controller::*;
-use crate::api::*;
-use crate::middlewares::authentication;
+use crate::handlers::access::*;
+use crate::handlers::account::*;
+use crate::handlers::file::*;
+use crate::handlers::{health, ping};
+use crate::middlewares::auth;
 
-pub fn config(service_config: &mut web::ServiceConfig) {
+pub fn router(service_config: &mut web::ServiceConfig) {
     service_config.service(
         web::scope("api")
             .service(web::resource("ping").route(web::get().to(ping)))
@@ -17,12 +17,12 @@ pub fn config(service_config: &mut web::ServiceConfig) {
             )
             .service(
                 web::resource("health")
-                    .wrap(authentication::Authentication)
+                    .wrap(auth::Authentication)
                     .route(web::get().to(health)),
             )
             .service(
                 web::scope("file")
-                    .wrap(authentication::Authentication)
+                    .wrap(auth::Authentication)
                     .service(
                         web::resource("download/{linkID:.*}").route(web::get().to(download_file)),
                     )

@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS access_users (
     access_id INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (id),
     FOREIGN KEY (file_id) REFERENCES files (id),
-    FOREIGN KEY (access_id) REFERENCES access (id)
+    FOREIGN KEY (access_id) REFERENCES access (id),
+    UNIQUE(user_id, access_id)
 );
 
 COMMIT;

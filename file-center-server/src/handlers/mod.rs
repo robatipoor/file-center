@@ -1,6 +1,6 @@
-pub mod access_controller;
-pub mod account_controller;
-pub mod file_controller;
+pub mod access;
+pub mod account;
+pub mod file;
 use actix_web::*;
 
 pub async fn ping() -> Result<HttpResponse> {
@@ -12,5 +12,5 @@ pub async fn ping() -> Result<HttpResponse> {
 pub async fn health() -> Result<HttpResponse> {
     Ok(HttpResponse::Ok()
         .content_type("application/json")
-        .body("application is run \n"))
+        .body("application is up \n"))
 }

@@ -1,6 +1,6 @@
-use crate::middlewares::authentication::get_user_id_from_request;
+use crate::middlewares::auth::get_user_id_from_request;
 use crate::payloads::requests::UpdateAccessRequest;
-use crate::services::access_service;
+use crate::services::access::*;
 use actix_web::{web, HttpResponse};
 use actix_web::{HttpRequest, Result};
 use log::{error, info};
@@ -22,7 +22,7 @@ pub async fn add_access(
                 .body("User not Autherized"));
         }
     };
-    let result = access_service::add_access(
+    let result = add_or_update_access_service(
         &pool,
         user_id,
         &*access_req.link,
@@ -54,7 +54,7 @@ pub async fn remove_access(
                 .body("User not Autherized"));
         }
     };
-    let result = access_service::delete_access(
+    let result = remove_access_service(
         &pool,
         user_id,
         &*access_req.link,

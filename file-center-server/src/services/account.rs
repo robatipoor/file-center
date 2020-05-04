@@ -8,7 +8,7 @@ use sqlx::{Pool, SqliteConnection};
 
 type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
 
-pub async fn login(
+pub async fn login_service(
     login: LoginRequest,
     pool: &DataPoolSqlite,
 ) -> anyhow::Result<ResponseBody<TokenResponse>> {
@@ -18,7 +18,7 @@ pub async fn login(
     Ok(ResponseBody::new(Status::SUCCESS, "login").add_data(token_response))
 }
 
-pub async fn register(
+pub async fn register_service(
     req: RegisterRequest,
     pool: &DataPoolSqlite,
 ) -> anyhow::Result<ResponseBody<String>> {

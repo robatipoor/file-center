@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 extern crate actix_web;
+extern crate actix_cors;
+
 extern crate bcrypt;
 extern crate chrono;
 extern crate dotenv;
@@ -16,20 +18,22 @@ extern crate strum_macros;
 #[macro_use]
 extern crate anyhow;
 
-mod api;
 mod config;
 mod errors;
+mod handlers;
 mod middlewares;
+mod extractors;
 mod models;
 mod payloads;
+mod routers;
 mod services;
 mod utils;
 
-use crate::config::service_config::config;
-use crate::models::DataBase;
 use actix_cors::Cors;
-use actix_web::{http, App, HttpServer};
+use actix_web::{http::header, middleware, App, HttpServer};
 use log::info;
+use models::DataBase;
+use routers::router::router;
 use std::default::Default;
 use std::env;
 
@@ -48,14 +52,14 @@ async fn main() -> std::io::Result<()> {
                 Cors::new()
                     .send_wildcard()
                     .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
-                    .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
-                    .allowed_header(http::header::CONTENT_TYPE)
+                    .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
+                    .allowed_header(header::CONTENT_TYPE)
                     .max_age(3600)
                     .finish(),
             )
             .data(pool.clone())
-            .wrap(actix_web::middleware::Logger::default())
-            .configure(config)
+            .wrap(middleware::Logger::default())
+            .configure(router)
     })
     .bind(addr)?
     .run()

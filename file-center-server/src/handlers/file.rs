@@ -1,6 +1,6 @@
-use crate::middlewares::authentication::get_user_id_from_request;
+use crate::middlewares::auth::get_user_id_from_request;
 use crate::models::file::File;
-use crate::services::file_service;
+use crate::services::file::*;
 use actix_files::NamedFile;
 use actix_multipart::Multipart;
 use actix_web::{web, HttpResponse};
@@ -73,7 +73,7 @@ pub async fn list_file(pool: PoolSqliteData, req: HttpRequest) -> Result<HttpRes
                 .body("User not Autherized \n"));
         }
     };
-    let list = file_service::list_link_files(&pool, user_id).await;
+    let list = list_link_files(&pool, user_id).await;
     if let Err(e) = list {
         return Ok(HttpResponse::Ok()
             .content_type("application/json")
@@ -108,7 +108,7 @@ pub async fn download_file(
         }
     };
 
-    let path = match file_service::download_path(&pool, &*link, user_id).await {
+    let path = match download_path(&pool, &*link, user_id).await {
         Ok(list) => list,
         Err(e) => {
             error!("message error : {}", e);
