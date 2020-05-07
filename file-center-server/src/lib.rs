@@ -1,9 +1,12 @@
 #![allow(dead_code)]
 extern crate actix_web;
+#[macro_use]
+extern crate lazy_static;
 extern crate bcrypt;
 extern crate chrono;
 extern crate dotenv;
 extern crate env_logger;
+extern crate envy;
 extern crate futures;
 extern crate jsonwebtoken;
 extern crate log;

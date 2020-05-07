@@ -19,12 +19,12 @@ impl AccessUser {
     }
 
     pub async fn save(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<i64> {
-        sqlx::query!(
+        sqlx::query(
             r#"INSERT INTO access_users (user_id , file_id , access_id) VALUES ($1,$2,$3)"#,
-            self.user_id,
-            self.file_id,
-            self.access_id,
         )
+        .bind(self.user_id)
+        .bind(self.file_id)
+        .bind(self.access_id)
         .execute(pool)
         .await?;
         let record: (i64,) = sqlx::query_as("SELECT last_insert_rowid()")
@@ -139,24 +139,22 @@ impl AccessUser {
         access_user_id: i64,
         access_id: i64,
     ) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query!(
-            r#"UPDATE access_users SET access_id = ?1 WHERE id = ?2"#,
-            access_id,
-            access_user_id
-        )
-        .execute(pool)
-        .await?;
+        let row_affected = sqlx::query(r#"UPDATE access_users SET access_id = ?1 WHERE id = ?2"#)
+            .bind(access_id)
+            .bind(access_user_id)
+            .execute(pool)
+            .await?;
         Ok(row_affected)
     }
 
     pub async fn update(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query!(
+        let row_affected = sqlx::query(
             r#"UPDATE access_users SET user_id = $1 ,file_id = $2 ,access_id = $3 WHERE id = $4"#,
-            self.user_id,
-            self.file_id,
-            self.access_id,
-            self.id
         )
+        .bind(self.user_id)
+        .bind(self.file_id)
+        .bind(self.access_id)
+        .bind(self.id)
         .execute(pool)
         .await?;
         Ok(row_affected)
@@ -167,13 +165,12 @@ impl AccessUser {
         user_id: i64,
         file_id: i64,
     ) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query!(
-            r#"DELETE FROM access_users WHERE user_id = $1 AND file_id = $2"#,
-            user_id,
-            file_id
-        )
-        .execute(pool)
-        .await?;
+        let row_affected =
+            sqlx::query(r#"DELETE FROM access_users WHERE user_id = $1 AND file_id = $2"#)
+                .bind(user_id)
+                .bind(file_id)
+                .execute(pool)
+                .await?;
         Ok(row_affected)
     }
 

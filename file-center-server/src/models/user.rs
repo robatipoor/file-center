@@ -22,26 +22,24 @@ impl User {
         email: &str,
         role: Role,
     ) -> anyhow::Result<User> {
-        let pass = Bcrypt::hash(password);
+        let hashed_pass = Bcrypt::hash(password);
         Ok(User {
             id: 0,
             username: username.to_owned(),
-            password: pass,
+            password: hashed_pass,
             email: email.to_owned(),
             role_id: role.id,
         })
     }
 
     pub async fn save(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<i64> {
-        sqlx::query!(
-            r#"INSERT INTO users (username,password,email,role_id) VALUES ($1,$2,$3,$4);"#,
-            self.username,
-            self.password,
-            self.email,
-            self.role_id,
-        )
-        .execute(pool)
-        .await?;
+        sqlx::query(r#"INSERT INTO users (username,password,email,role_id) VALUES ($1,$2,$3,$4);"#)
+            .bind(self.username.as_str())
+            .bind(self.password.as_str())
+            .bind(self.email.as_str())
+            .bind(self.role_id)
+            .execute(pool)
+            .await?;
         let record: (i64,) = sqlx::query_as("SELECT last_insert_rowid()")
             .fetch_one(pool)
             .await?;
@@ -123,16 +121,22 @@ impl User {
     }
 
     pub async fn update(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query!(
+        let row_affected = sqlx::query(
             r#"UPDATE users SET username = $1 ,password = $2 ,email = $3, role_id = $4 WHERE id = $5"#,
-             self.username,self.password,self.email,self.role_id,&self.id)
+            )
+             .bind(self.username.as_str())
+             .bind(self.password.as_str())
+             .bind(self.email.as_str())
+             .bind(self.role_id)
+             .bind(self.id)
             .execute(pool)
             .await?;
         Ok(row_affected)
     }
 
     pub async fn delete(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query!(r#"DELETE FROM users WHERE id = $1"#, self.id)
+        let row_affected = sqlx::query(r#"DELETE FROM users WHERE id = $1"#)
+            .bind(self.id)
             .execute(pool)
             .await?;
         Ok(row_affected)
@@ -142,7 +146,8 @@ impl User {
         pool: &Pool<SqliteConnection>,
         email: String,
     ) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query!(r#"DELETE FROM users WHERE email = $1"#, email)
+        let row_affected = sqlx::query(r#"DELETE FROM users WHERE email = $1"#)
+            .bind(email)
             .execute(pool)
             .await?;
         Ok(row_affected)
@@ -152,7 +157,8 @@ impl User {
         pool: &Pool<SqliteConnection>,
         username: &str,
     ) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query!(r#"DELETE FROM users WHERE username = $1"#, username)
+        let row_affected = sqlx::query(r#"DELETE FROM users WHERE username = $1"#)
+            .bind(username)
             .execute(pool)
             .await?;
         Ok(row_affected)

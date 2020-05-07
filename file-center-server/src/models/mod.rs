@@ -4,12 +4,18 @@ pub mod file;
 pub mod role;
 pub mod user;
 
+use crate::config::constants;
+use crate::config::CONFIG;
 use crate::utils::file::read_file;
+use log::info;
 use sqlx::{Pool, SqliteConnection, SqlitePool};
-use std::env;
 use std::fmt;
 
-pub enum DatabaseMode {
+pub struct DataBase {
+    pub pool: Pool<SqliteConnection>,
+}
+
+pub enum DataDefinitionLanguageMode {
     UpdateSchema,
     CreateSchema,
     InsertData,
@@ -18,9 +24,9 @@ pub enum DatabaseMode {
     None,
 }
 
-impl fmt::Display for DatabaseMode {
+impl fmt::Display for DataDefinitionLanguageMode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use DatabaseMode::*;
+        use DataDefinitionLanguageMode::*;
         let name = match self {
             UpdateSchema => "UPDATE",
             InsertData => "INSERT",
@@ -33,35 +39,31 @@ impl fmt::Display for DatabaseMode {
     }
 }
 
-impl From<String> for DatabaseMode {
+impl From<String> for DataDefinitionLanguageMode {
     fn from(input: String) -> Self {
-        use DatabaseMode::*;
+        use DataDefinitionLanguageMode::*;
         let input_uppercase = input.to_uppercase();
         if input_uppercase == UpdateSchema.to_string() {
-            DatabaseMode::UpdateSchema
+            DataDefinitionLanguageMode::UpdateSchema
         } else if input_uppercase == InsertData.to_string() {
-            DatabaseMode::InsertData
+            DataDefinitionLanguageMode::InsertData
         } else if input_uppercase == DeleteData.to_string() {
-            DatabaseMode::DeleteData
+            DataDefinitionLanguageMode::DeleteData
         } else if input_uppercase == DropAll.to_string() {
-            DatabaseMode::DropAll
+            DataDefinitionLanguageMode::DropAll
         } else if input_uppercase == CreateSchema.to_string() {
-            DatabaseMode::CreateSchema
+            DataDefinitionLanguageMode::CreateSchema
         } else {
-            DatabaseMode::None
+            DataDefinitionLanguageMode::None
         }
     }
 }
 
-impl DatabaseMode {
+impl DataDefinitionLanguageMode {
     pub fn from_env() -> anyhow::Result<Self> {
-        let m = std::env::var("DATABASE_MODE")?;
-        Ok(m.into())
+        info!("{}", CONFIG.database_mode);
+        Ok(CONFIG.database_mode.clone().into())
     }
-}
-
-pub struct DataBase {
-    pub pool: Pool<SqliteConnection>,
 }
 
 impl DataBase {
@@ -71,9 +73,9 @@ impl DataBase {
         })
     }
 
-    pub async fn migrate() -> anyhow::Result<DataBase> {
-        use DatabaseMode::*;
-        let mod_db = DatabaseMode::from_env()?;
+    pub async fn auto_ddl_generate() -> anyhow::Result<DataBase> {
+        use DataDefinitionLanguageMode::*;
+        let mod_db = DataDefinitionLanguageMode::from_env()?;
         let db = DataBase::new().await?;
         match mod_db {
             UpdateSchema => db.update_schema().await?,
@@ -81,7 +83,7 @@ impl DataBase {
             DeleteData => db.delete_data().await?,
             DropAll => db.drop_database().await?,
             CreateSchema => db.create_schema().await?,
-            None => println!("Noting ..."),
+            None => info!("*** None ***"),
         }
         Ok(db)
     }
@@ -91,12 +93,12 @@ impl DataBase {
     }
 
     async fn open_conn_pool() -> anyhow::Result<Pool<SqliteConnection>> {
-        let pool = SqlitePool::new(&*env::var("DATABASE_URL")?).await?;
+        let pool = SqlitePool::new(CONFIG.database_url.as_str()).await?;
         Ok(pool)
     }
 
     async fn update_schema(&self) -> anyhow::Result<()> {
-        println!("Update DataBase ...");
+        info!("** Start Update DataBase ***");
         self.drop_database().await?;
         self.create_schema().await?;
         self.insert_data().await?;
@@ -104,33 +106,33 @@ impl DataBase {
     }
 
     async fn create_schema(&self) -> anyhow::Result<()> {
-        sqlx::query(&*read_file("sql/schema.sql")?)
+        sqlx::query(&*read_file(constants::SCHEMA_SQL_FILE_PATH)?)
             .execute(&self.pool)
             .await?;
-        println!("Create Schema ...");
+        info!("*** Create Schema ***");
         Ok(())
     }
     pub async fn insert_data(&self) -> anyhow::Result<()> {
-        sqlx::query(&*read_file("sql/insert.sql")?)
+        sqlx::query(&*read_file(constants::INSERT_SQL_FILE_PATH)?)
             .execute(&self.pool)
             .await?;
-        println!("Insert Data ...");
+        info!("*** Insert Data ***");
         Ok(())
     }
 
     pub async fn drop_database(&self) -> anyhow::Result<()> {
-        sqlx::query(&*read_file("sql/drop.sql")?)
+        sqlx::query(&*read_file(constants::DROP_SQL_FILE_PATH)?)
             .execute(&self.pool)
             .await?;
-        println!("Drop Table ...");
+        info!("*** Drop Tables ***");
         Ok(())
     }
 
     pub async fn delete_data(&self) -> anyhow::Result<()> {
-        sqlx::query(&*read_file("sql/delete.sql")?)
+        sqlx::query(&*read_file(constants::DELETE_SQL_FILE_PATH)?)
             .execute(&self.pool)
             .await?;
-        println!("Delete Data ...");
+        info!("*** Delete Data ***");
         Ok(())
     }
 }

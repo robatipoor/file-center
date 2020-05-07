@@ -21,15 +21,13 @@ impl File {
         })
     }
     pub async fn save(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<i64> {
-        sqlx::query!(
-            r#"INSERT INTO files (name, path ,link,user_id) VALUES ($1,$2,$3,$4)"#,
-            self.name,
-            self.path,
-            self.link,
-            self.user_id,
-        )
-        .execute(pool)
-        .await?;
+        sqlx::query(r#"INSERT INTO files (name, path ,link,user_id) VALUES ($1,$2,$3,$4)"#)
+            .bind(self.name.as_str())
+            .bind(self.path.as_str())
+            .bind(self.link.as_str())
+            .bind(self.user_id)
+            .execute(pool)
+            .await?;
         let record: (i64,) = sqlx::query_as("SELECT last_insert_rowid()")
             .fetch_one(pool)
             .await?;
@@ -123,22 +121,23 @@ impl File {
     }
 
     pub async fn update(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query!(
+        let row_affected = sqlx::query(
             r#"UPDATE files SET name = $1 ,path = $2 ,link = $3 ,user_id = $4 WHERE id = $5"#,
-            self.name,
-            self.path,
-            self.link,
-            self.user_id,
-            self.id
         )
+        .bind(self.name.as_str())
+        .bind(self.path.as_str())
+        .bind(self.link.as_str())
+        .bind(self.user_id)
+        .bind(self.id)
         .execute(pool)
         .await?;
-        info!("");
+        // info!("");
         Ok(row_affected)
     }
 
     pub async fn delete(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query!(r#"DELETE FROM files WHERE id = $1"#, self.id)
+        let row_affected = sqlx::query(r#"DELETE FROM files WHERE id = $1"#)
+            .bind(self.id)
             .execute(pool)
             .await?;
         info!("");
@@ -146,7 +145,8 @@ impl File {
     }
 
     pub async fn delete_by_link(pool: &Pool<SqliteConnection>, link: &str) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query!(r#"DELETE FROM files WHERE link = $1"#, link)
+        let row_affected = sqlx::query(r#"DELETE FROM files WHERE link = $1"#)
+            .bind(link)
             .execute(pool)
             .await?;
         info!("");
@@ -154,7 +154,8 @@ impl File {
     }
 
     pub async fn delete_by_path(pool: &Pool<SqliteConnection>, path: &str) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query!(r#"DELETE FROM files WHERE path = $1"#, path)
+        let row_affected = sqlx::query(r#"DELETE FROM files WHERE path = $1"#)
+            .bind(path)
             .execute(pool)
             .await?;
         info!("");
