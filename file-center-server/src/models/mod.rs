@@ -61,7 +61,6 @@ impl From<String> for DataDefinitionLanguageMode {
 
 impl DataDefinitionLanguageMode {
     pub fn from_env() -> anyhow::Result<Self> {
-        info!("{}", CONFIG.database_mode);
         Ok(CONFIG.database_mode.clone().into())
     }
 }
@@ -75,17 +74,17 @@ impl DataBase {
 
     pub async fn auto_ddl_generate() -> anyhow::Result<DataBase> {
         use DataDefinitionLanguageMode::*;
-        let mod_db = DataDefinitionLanguageMode::from_env()?;
-        let db = DataBase::new().await?;
-        match mod_db {
-            UpdateSchema => db.update_schema().await?,
-            InsertData => db.insert_data().await?,
-            DeleteData => db.delete_data().await?,
-            DropAll => db.drop_database().await?,
-            CreateSchema => db.create_schema().await?,
+        let ddl_mode = DataDefinitionLanguageMode::from_env()?;
+        let database = DataBase::new().await?;
+        match ddl_mode {
+            UpdateSchema => database.update_schema().await?,
+            InsertData => database.insert_data().await?,
+            DeleteData => database.delete_data().await?,
+            DropAll => database.drop_database().await?,
+            CreateSchema => database.create_schema().await?,
             None => info!("*** None ***"),
         }
-        Ok(db)
+        Ok(database)
     }
 
     pub async fn get_conn_pool(self) -> Pool<SqliteConnection> {

@@ -22,11 +22,10 @@ extern crate anyhow;
 pub mod config;
 pub mod errors;
 pub mod handlers;
+pub mod extractors;
 pub mod middlewares;
 pub mod models;
 pub mod payloads;
 pub mod routers;
 pub mod services;
 pub mod utils;
-
-pub use models::DataBase;

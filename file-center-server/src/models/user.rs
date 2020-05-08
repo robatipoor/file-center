@@ -6,6 +6,12 @@ use log::info;
 use sqlx::prelude::*;
 use sqlx::{Pool, SqliteConnection};
 
+#[derive(Debug)]
+pub struct UserAuth {
+    pub id: i64,
+    pub role_id: i64,
+}
+
 #[derive(sqlx::FromRow, Debug)]
 pub struct User {
     pub id: i64,

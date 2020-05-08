@@ -1,7 +1,8 @@
-use crate::middlewares::auth::get_user_id_from_request;
+use crate::models::user::UserAuth;
 use crate::payloads::requests::{LoginRequest, RegisterRequest};
 use crate::services::account::*;
-use actix_web::{web, HttpRequest, HttpResponse, Result};
+use actix_identity::Identity;
+use actix_web::{web, HttpResponse, Result};
 use log::error;
 use sqlx::{Pool, SqliteConnection};
 
@@ -12,66 +13,61 @@ pub async fn register(
     pool: DataPoolSqlite,
 ) -> Result<HttpResponse> {
     match register_service(req.into_inner(), &pool).await {
-        Ok(resp) => {
-            return Ok(HttpResponse::Ok()
-                .content_type("application/json")
-                .json(resp));
-        }
+        Ok(resp) => Ok(HttpResponse::Ok()
+            .content_type("application/json")
+            .json(resp)),
         Err(e) => {
             error!("unsuccessful user register error message : {}", e);
-            return Ok(HttpResponse::Ok()
+            Ok(HttpResponse::Ok()
                 .content_type("application/json")
-                .json("unsuccessful register"));
+                .json("unsuccessful register"))
         }
     }
 }
 
-pub async fn login(req: web::Json<LoginRequest>, pool: DataPoolSqlite) -> Result<HttpResponse> {
+pub async fn login(
+    req: web::Json<LoginRequest>,
+    _identity: Identity,
+    pool: DataPoolSqlite,
+) -> Result<HttpResponse> {
     match login_service(req.into_inner(), &pool).await {
         Ok(resp) => {
-            return Ok(HttpResponse::Ok()
+            // identity.remember("jwt".to_owned());
+            Ok(HttpResponse::Ok()
                 .content_type("application/json")
-                .json(resp));
+                .json(resp))
         }
         Err(e) => {
             error!("login unsuccessful error message : {}", e);
-            return Ok(HttpResponse::Ok()
+            Ok(HttpResponse::Ok()
                 .content_type("application/json")
-                .json("login unsuccessful"));
+                .json("login unsuccessful"))
         }
     }
+}
+
+pub async fn logout(
+    _req: web::Json<LoginRequest>,
+    _user_auth: UserAuth,
+    identity: Identity,
+    _pool: DataPoolSqlite,
+) -> Result<HttpResponse> {
+    identity.forget();
+    todo!()
 }
 
 pub async fn update_account(
     _req: web::Json<LoginRequest>,
-    req: HttpRequest,
-    pool: DataPoolSqlite,
+    _user_auth: UserAuth,
+    _pool: DataPoolSqlite,
 ) -> Result<HttpResponse> {
-    let _user_id = match get_user_id_from_request(&pool.clone(), req).await {
-        Ok(id) => id,
-        Err(e) => {
-            error!("unautherized user message error : {}", e);
-            return Ok(HttpResponse::Unauthorized()
-                .content_type("application/json")
-                .body("User not Autherized"));
-        }
-    };
     todo!()
 }
 
 pub async fn delete_account(
     _req: web::Json<LoginRequest>,
-    req: HttpRequest,
-    pool: DataPoolSqlite,
+    _user_auth: UserAuth,
+    _pool: DataPoolSqlite,
 ) -> Result<HttpResponse> {
-    let _user_id = match get_user_id_from_request(&pool.clone(), req).await {
-        Ok(id) => id,
-        Err(e) => {
-            error!("unautherized user message error : {}", e);
-            return Ok(HttpResponse::Unauthorized()
-                .content_type("application/json")
-                .body("User not Autherized"));
-        }
-    };
     todo!()
 }

@@ -36,7 +36,7 @@ where
 {
     pub fn new(status: Status, msg: &str) -> Self {
         ResponseBody {
-            status: status,
+            status,
             message: msg.to_string(),
             data: None,
         }

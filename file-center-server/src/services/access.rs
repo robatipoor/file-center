@@ -88,5 +88,5 @@ pub async fn remove_access_service(
             return Err(anyhow!("Delete Unsuccessful"));
         }
     }
-    return Err(anyhow!("User Not Owner"));
+    Err(anyhow!("User Not Owner"))
 }

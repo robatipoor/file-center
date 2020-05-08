@@ -1,5 +1,5 @@
-use crate::middlewares::auth::get_user_id_from_request;
 use crate::models::file::File;
+use crate::models::user::UserAuth;
 use crate::services::file::*;
 use actix_files::NamedFile;
 use actix_multipart::Multipart;
@@ -17,18 +17,9 @@ type PoolSqliteData = web::Data<Pool<SqliteConnection>>;
 
 pub async fn upload_file(
     pool: PoolSqliteData,
+    user_auth: UserAuth,
     mut payload: Multipart,
-    req: HttpRequest,
 ) -> Result<HttpResponse> {
-    let user_id = match get_user_id_from_request(&pool.clone(), req).await {
-        Ok(id) => id,
-        Err(e) => {
-            error!("unautherized user message error : {}", e);
-            return Ok(HttpResponse::Unauthorized()
-                .content_type("application/json")
-                .body("User not Autherized"));
-        }
-    };
     let path = match env::var("PATH_FILE") {
         Ok(p) => p,
         Err(e) => {
@@ -45,7 +36,7 @@ pub async fn upload_file(
         let uuid = Uuid::new_v4().to_simple().to_string();
         let filepath = Path::new(&path).join(&*format!("{}-{}", uuid, filename));
         let conn = pool.clone();
-        let file = File::new(&*filename, filepath.to_str().unwrap(), &*uuid, user_id)
+        let file = File::new(&*filename, filepath.to_str().unwrap(), &*uuid, user_auth.id)
             .await
             .unwrap();
         file.save(&conn).await.unwrap();
@@ -63,17 +54,8 @@ pub async fn upload_file(
     Ok(HttpResponse::Ok().into())
 }
 
-pub async fn list_file(pool: PoolSqliteData, req: HttpRequest) -> Result<HttpResponse> {
-    let user_id = match get_user_id_from_request(&pool.clone(), req).await {
-        Ok(id) => id,
-        Err(e) => {
-            error!("unautherized user message error : {}", e);
-            return Ok(HttpResponse::Unauthorized()
-                .content_type("application/json")
-                .body("User not Autherized \n"));
-        }
-    };
-    let list = list_link_files(&pool, user_id).await;
+pub async fn list_file(pool: PoolSqliteData, user_auth:UserAuth) -> Result<HttpResponse> {
+    let list = list_link_files(&pool, user_auth.id).await;
     if let Err(e) = list {
         return Ok(HttpResponse::Ok()
             .content_type("application/json")
@@ -85,18 +67,9 @@ pub async fn list_file(pool: PoolSqliteData, req: HttpRequest) -> Result<HttpRes
 }
 
 pub async fn download_file(
-    pool: PoolSqliteData,
+    pool: PoolSqliteData,user_auth: UserAuth,
     req: HttpRequest,
 ) -> Result<NamedFile, HttpResponse> {
-    let user_id = match get_user_id_from_request(&pool.clone(), req.clone()).await {
-        Ok(id) => id,
-        Err(e) => {
-            error!("unautherized user message error : {}", e);
-            return Err(HttpResponse::Unauthorized()
-                .content_type("application/json")
-                .body("User not Autherized \n"));
-        }
-    };
 
     let link: String = match req.match_info().query("linkID").parse() {
         Ok(l) => l,
@@ -108,7 +81,7 @@ pub async fn download_file(
         }
     };
 
-    let path = match download_path(&pool, &*link, user_id).await {
+    let path = match download_path(&pool, &*link, user_auth.id).await {
         Ok(list) => list,
         Err(e) => {
             error!("message error : {}", e);
