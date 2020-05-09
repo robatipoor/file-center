@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-curl -X GET http://localhost:8080/api/ping
+curl -iv -X GET http://localhost:8080/api/ping

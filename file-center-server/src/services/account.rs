@@ -11,24 +11,21 @@ type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
 pub async fn login_service(
     login: LoginRequest,
     pool: &DataPoolSqlite,
-) -> anyhow::Result<ResponseBody<TokenResponse>> {
+) -> anyhow::Result<TokenResponse> {
     let user_verified = User::verify(pool, login).await?;
     let token = Token::new(user_verified).encode()?;
-    let token_response = TokenResponse::new(token.as_str());
-    Ok(ResponseBody::new(Status::SUCCESS, "login").add_data(token_response))
+    Ok(TokenResponse::new(token.as_str()))
 }
 
 pub async fn register_service(
     req: RegisterRequest,
     pool: &DataPoolSqlite,
-) -> anyhow::Result<ResponseBody<String>> {
-    let role = Role::new(RoleName::USER).await?;
-    let user = User::new(&*req.username, &*req.password, &*req.email, role).await?;
+) -> anyhow::Result<String> {
+    let user_role = RoleName::USER;
+    let user = User::new(&*req.username, &*req.password, &*req.email, user_role).await?;
     if !user.exist(pool).await? {
-        let result_save = user.save(pool).await?;
-        let response =
-            ResponseBody::new(Status::SUCCESS, "User Register !").add_data(result_save.to_string());
-        return Ok(response);
+        let _result_save = user.save(pool).await?;
+        return Ok("User Success Register !".to_string());
     }
     Err(anyhow!("User Exist !"))
 }

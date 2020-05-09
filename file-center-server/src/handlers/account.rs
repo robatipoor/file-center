@@ -3,7 +3,7 @@ use crate::payloads::requests::{LoginRequest, RegisterRequest};
 use crate::services::account::*;
 use actix_identity::Identity;
 use actix_web::{web, HttpResponse, Result};
-use log::error;
+use log::{debug, error};
 use sqlx::{Pool, SqliteConnection};
 
 type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
@@ -17,22 +17,22 @@ pub async fn register(
             .content_type("application/json")
             .json(resp)),
         Err(e) => {
-            error!("unsuccessful user register error message : {}", e);
+            error!("unsuccessful user register message : {}", e);
             Ok(HttpResponse::Ok()
                 .content_type("application/json")
-                .json("unsuccessful register"))
+                .json("Unsuccessful register"))
         }
     }
 }
 
 pub async fn login(
     req: web::Json<LoginRequest>,
-    _identity: Identity,
+    identity: Identity,
     pool: DataPoolSqlite,
 ) -> Result<HttpResponse> {
     match login_service(req.into_inner(), &pool).await {
         Ok(resp) => {
-            // identity.remember("jwt".to_owned());
+            identity.remember(resp.token.clone());
             Ok(HttpResponse::Ok()
                 .content_type("application/json")
                 .json(resp))
@@ -53,7 +53,9 @@ pub async fn logout(
     _pool: DataPoolSqlite,
 ) -> Result<HttpResponse> {
     identity.forget();
-    todo!()
+    Ok(HttpResponse::Ok()
+        .content_type("application/json")
+        .json("logout"))
 }
 
 pub async fn update_account(

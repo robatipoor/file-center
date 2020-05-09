@@ -105,7 +105,7 @@ pub async fn download_file(
 }
 
 pub async fn manual_upload_file() -> Result<HttpResponse> {
-    let text = r#"*** Post File Manual Page ***"#;
+    let text = r#" Post File Manual Page "#;
     Ok(HttpResponse::Ok()
         .content_type("application/json")
         .body(text))

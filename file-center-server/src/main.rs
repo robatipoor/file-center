@@ -34,6 +34,7 @@ mod utils;
 
 use actix_cors::Cors;
 use actix_web::{http::header, middleware, App, HttpServer};
+use crate::services::get_identity_service;
 use config::CONFIG;
 use dotenv::dotenv;
 use log::info;
@@ -46,7 +47,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
     let db = DataBase::auto_ddl_generate().await.unwrap();
     let pool = db.get_conn_pool().await;
-    info!("*** Start Server Address : {} ***", CONFIG.address_server);
+    info!("Start Server Address : {}", CONFIG.address_server);
     HttpServer::new(move || {
         App::new()
             .wrap(
@@ -59,6 +60,7 @@ async fn main() -> std::io::Result<()> {
                     .finish(),
             )
             .data(pool.clone())
+            .wrap(get_identity_service())
             .wrap(middleware::Logger::default())
             .configure(router)
     })

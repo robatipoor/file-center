@@ -9,6 +9,7 @@ use crate::middlewares::auth;
 pub fn router(service_config: &mut web::ServiceConfig) {
     service_config.service(
         web::scope("api")
+            .service(web::resource("manual").route(web::get().to(manual_upload_file)))
             .service(web::resource("ping").route(web::get().to(ping)))
             .service(
                 web::scope("auth")

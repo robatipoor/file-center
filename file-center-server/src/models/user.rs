@@ -1,4 +1,4 @@
-use crate::models::role::Role;
+use crate::models::role::RoleName;
 use crate::payloads::requests::LoginRequest;
 use crate::utils::hash::Bcrypt;
 use anyhow::anyhow;
@@ -26,7 +26,7 @@ impl User {
         username: &str,
         password: &str,
         email: &str,
-        role: Role,
+        role_name: RoleName,
     ) -> anyhow::Result<User> {
         let hashed_pass = Bcrypt::hash(password);
         Ok(User {
@@ -34,7 +34,7 @@ impl User {
             username: username.to_owned(),
             password: hashed_pass,
             email: email.to_owned(),
-            role_id: role.id,
+            role_id: role_name as i64,
         })
     }
 

@@ -82,7 +82,7 @@ impl DataBase {
             DeleteData => database.delete_data().await?,
             DropAll => database.drop_database().await?,
             CreateSchema => database.create_schema().await?,
-            None => info!("*** None ***"),
+            None => info!("None"),
         }
         Ok(database)
     }
@@ -97,7 +97,7 @@ impl DataBase {
     }
 
     async fn update_schema(&self) -> anyhow::Result<()> {
-        info!("** Start Update DataBase ***");
+        info!("Start Update DataBase");
         self.drop_database().await?;
         self.create_schema().await?;
         self.insert_data().await?;
@@ -108,14 +108,14 @@ impl DataBase {
         sqlx::query(&*read_file(constants::SCHEMA_SQL_FILE_PATH)?)
             .execute(&self.pool)
             .await?;
-        info!("*** Create Schema ***");
+        info!("Create Schema ");
         Ok(())
     }
     pub async fn insert_data(&self) -> anyhow::Result<()> {
         sqlx::query(&*read_file(constants::INSERT_SQL_FILE_PATH)?)
             .execute(&self.pool)
             .await?;
-        info!("*** Insert Data ***");
+        info!("Insert Data");
         Ok(())
     }
 
@@ -123,7 +123,7 @@ impl DataBase {
         sqlx::query(&*read_file(constants::DROP_SQL_FILE_PATH)?)
             .execute(&self.pool)
             .await?;
-        info!("*** Drop Tables ***");
+        info!("Drop Tables ");
         Ok(())
     }
 
@@ -131,7 +131,7 @@ impl DataBase {
         sqlx::query(&*read_file(constants::DELETE_SQL_FILE_PATH)?)
             .execute(&self.pool)
             .await?;
-        info!("*** Delete Data ***");
+        info!("Delete Data");
         Ok(())
     }
 }
