@@ -22,28 +22,31 @@ pub async fn list_link_files(pool: &DataPoolSqlite, user_id: i64) -> anyhow::Res
     File::find_all_link_files(pool, user_id).await
 }
 
-pub async fn download_path(
+pub async fn user_access_to_link(
     pool: &DataPoolSqlite,
     link: &str,
     user_id: i64,
-) -> anyhow::Result<String> {
+) -> anyhow::Result<()> {
+    if File::is_owner(pool, link, user_id).await? {
+        debug!("user id {} is owner link file {}", user_id, link);
+        Ok(())
+    } else if AccessUser::user_has_access_by_link(pool, link, user_id).await? {
+        debug!("user id {} is has access link file {}", user_id, link);
+        Ok(())
+    } else {
+        error!("user not access ");
+        Err(anyhow!("user not access "))
+    }
+}
+
+pub async fn get_download_path(pool: &DataPoolSqlite, link: &str) -> anyhow::Result<String> {
     match File::find_path_by_link(pool, link).await {
-        Ok(path) => {
-            if File::is_owner(pool, link, user_id).await? {
-                debug!("user id {} is owner link file {}", user_id, link);
-                return Ok(path);
-            } else if AccessUser::user_has_access_by_link(pool, link, user_id).await? {
-                debug!("user id {} is has access link file {}", user_id, link);
-                return Ok(path);
-            }
-        }
+        Ok(path) => Ok(path),
         Err(e) => {
             error!("file not exist error message {}", e);
             return Err(anyhow!("file not exist error message : {}", e));
         }
     }
-    error!("user not access ");
-    Err(anyhow!("user not access "))
 }
 
 pub async fn save_file() {}

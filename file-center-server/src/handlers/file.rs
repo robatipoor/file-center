@@ -54,7 +54,7 @@ pub async fn upload_file(
     Ok(HttpResponse::Ok().into())
 }
 
-pub async fn list_file(pool: PoolSqliteData, user_auth:UserAuth) -> Result<HttpResponse> {
+pub async fn list_file(pool: PoolSqliteData, user_auth: UserAuth) -> Result<HttpResponse> {
     let list = list_link_files(&pool, user_auth.id).await;
     if let Err(e) = list {
         return Ok(HttpResponse::Ok()
@@ -67,10 +67,10 @@ pub async fn list_file(pool: PoolSqliteData, user_auth:UserAuth) -> Result<HttpR
 }
 
 pub async fn download_file(
-    pool: PoolSqliteData,user_auth: UserAuth,
+    pool: PoolSqliteData,
+    user_auth: UserAuth,
     req: HttpRequest,
 ) -> Result<NamedFile, HttpResponse> {
-
     let link: String = match req.match_info().query("linkID").parse() {
         Ok(l) => l,
         Err(e) => {
@@ -81,7 +81,14 @@ pub async fn download_file(
         }
     };
 
-    let path = match download_path(&pool, &*link, user_auth.id).await {
+    if let Err(e) = user_access_to_link(&pool, &*link, user_auth.id).await {
+        error!("Unauthorized : {}", e);
+        return Err(HttpResponse::Unauthorized()
+            .content_type("application/json")
+            .body("user not access to file \n"));
+    };
+
+    let path = match get_download_path(&pool, &*link).await {
         Ok(list) => list,
         Err(e) => {
             error!("message error : {}", e);

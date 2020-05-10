@@ -21,6 +21,7 @@ impl File {
         })
     }
     pub async fn save(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<i64> {
+        println!("{} {} {}",self.name , self.path,self.user_id);
         sqlx::query(r#"INSERT INTO files (name, path ,link,user_id) VALUES ($1,$2,$3,$4)"#)
             .bind(self.name.as_str())
             .bind(self.path.as_str())

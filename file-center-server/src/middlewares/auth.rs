@@ -72,7 +72,7 @@ where
             Box::pin(async move {
                 let resp: ResponseBody<String> =
                     ResponseBody::new(Status::SUCCESS, constants::MESSAGE_INVALID_TOKEN);
-                Ok(req.into_response(HttpResponse::Unauthorized().json(resp).into_body()))
+                Ok(req.into_response(HttpResponse::Unauthorized().json(constants::MESSAGE_INVALID_TOKEN).into_body()))
             })
         }
     }

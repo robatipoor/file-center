@@ -46,12 +46,7 @@ pub async fn login(
     }
 }
 
-pub async fn logout(
-    _req: web::Json<LoginRequest>,
-    _user_auth: UserAuth,
-    identity: Identity,
-    _pool: DataPoolSqlite,
-) -> Result<HttpResponse> {
+pub async fn logout(identity: Identity) -> Result<HttpResponse> {
     identity.forget();
     Ok(HttpResponse::Ok()
         .content_type("application/json")

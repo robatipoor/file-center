@@ -14,6 +14,7 @@ pub fn router(service_config: &mut web::ServiceConfig) {
             .service(
                 web::scope("auth")
                     .service(web::resource("login").route(web::post().to(login)))
+                    .service(web::resource("logout").route(web::post().to(logout)))
                     .service(web::resource("register").route(web::post().to(register))), // .service(web::resource("update").route(web::post().to(update_account))),
             )
             .service(
