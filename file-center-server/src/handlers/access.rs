@@ -13,22 +13,26 @@ pub async fn add_access(
     user_auth: UserAuth,
     access_req: web::Json<UpdateAccessRequest>,
 ) -> Result<HttpResponse> {
-    let result = add_or_update_access_service(
+    match add_or_update_access_service(
         &pool,
         user_auth.id,
         &*access_req.link,
         &*access_req.username,
         access_req.access_type,
     )
-    .await;
-    if let Ok(b) = result {
-        info!("");
-        return Ok(HttpResponse::Ok().content_type("application/json").json(b));
+    .await
+    {
+        Ok(b) => {
+            info!("");
+            return Ok(HttpResponse::Ok().content_type("application/json").json(b));
+        }
+        Err(e) => {
+            error!("{}", e);
+            return Ok(HttpResponse::Ok()
+                .content_type("application/json")
+                .body(e.to_string()));
+        }
     }
-    error!("");
-    Ok(HttpResponse::Ok()
-        .content_type("application/json")
-        .body("nothing..."))
 }
 
 pub async fn remove_access(

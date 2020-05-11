@@ -15,7 +15,7 @@ pub struct Access {
 
 #[derive(Debug, Decode, Encode, Copy, Clone, Display, Serialize, Deserialize)]
 pub enum AccessType {
-    Read,
+    Read = 1,
     Write,
 }
 

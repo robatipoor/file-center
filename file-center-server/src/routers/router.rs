@@ -37,7 +37,7 @@ pub fn router(service_config: &mut web::ServiceConfig) {
                     .service(
                         web::resource("access")
                             .route(web::post().to(add_access))
-                            .route(web::delete().to(remove_access)),
+                            // .route(web::delete().to(remove_access)),
                     ),
             ),
     );

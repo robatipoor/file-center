@@ -1,6 +1,0 @@
-HTTP/1.1 401 Unauthorized
-content-length: 25
-content-type: application/json
-date: Sun, 10 May 2020 19:40:27 GMT
-
-user not access to file 

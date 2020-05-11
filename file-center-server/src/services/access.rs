@@ -3,7 +3,7 @@ use crate::models::access_user::AccessUser;
 use crate::models::file::File;
 use crate::models::user::User;
 use actix_web::web;
-use log::debug;
+use log::{debug,error,info};
 use sqlx::{Pool, SqliteConnection};
 
 type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
@@ -11,6 +11,7 @@ const WRITE_ACCESS_ID: i64 = AccessType::Write as i64;
 const READ_ACCESS_ID: i64 = AccessType::Read as i64;
 
 pub async fn is_owner(pool: &DataPoolSqlite, link: &str, user_id: i64) -> anyhow::Result<bool> {
+    info!("link {} user id {}",link,user_id);
     File::is_owner(pool, link, user_id).await
 }
 
@@ -45,6 +46,8 @@ pub async fn add_or_update_access_service(
     username: &str,
     access: AccessType,
 ) -> anyhow::Result<String> {
+    println!("{} {}",username,link);
+    // update access if exist no need check is_owner
     match AccessUser::find_id(&pool, username, link).await {
         Ok(access_user_id) => {
             let row_affected =
@@ -55,10 +58,13 @@ pub async fn add_or_update_access_service(
                 return Err(anyhow!("Unsuccessfull Update Access"));
             }
         }
-        Err(_) => {
+        Err(e) => {
+            error!("error {} ",e);
             if is_owner(&pool, link, owner_id).await? {
+                info!("{} user is owner !",owner_id);
                 let file_id = File::find_id(&pool, link).await?;
                 let user_id = User::find_id(&pool, username).await?;
+                info!("access id {}",access as i64);
                 let access_user = AccessUser::new(user_id, file_id, access as i64).await?;
                 let _id = access_user.save(&pool).await?;
                 return Ok("Add Access".to_string());

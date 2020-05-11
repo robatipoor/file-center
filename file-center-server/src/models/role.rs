@@ -14,7 +14,7 @@ pub struct Role {
 
 #[derive(Decode, Encode, Debug, Copy, Clone, Display)]
 pub enum RoleName {
-    ADMIN,
+    ADMIN = 1,
     USER,
 }
 

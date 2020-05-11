@@ -79,7 +79,7 @@ impl AccessUser {
     ) -> anyhow::Result<i64> {
         let access: (i64,) =
             sqlx::query_as(
-                "SELECT id FROM access_users ac INNER JOIN users us ON us.user_id = ac.user_id INNER JOIN files fi ON fi.file_id = ac.file_id WHERE us.username = $1 AND fi.link = $2")
+                "SELECT ac.id FROM access_users ac INNER JOIN users us ON us.id = ac.user_id INNER JOIN files fi ON fi.id = ac.file_id WHERE us.username = $1 AND fi.link = $2")
                 .bind(username)
                 .bind(link)
                 .fetch_one(pool)
