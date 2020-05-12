@@ -32,9 +32,9 @@ mod routers;
 mod services;
 mod utils;
 
+use crate::services::get_identity_service;
 use actix_cors::Cors;
 use actix_web::{http::header, middleware, App, HttpServer};
-use crate::services::get_identity_service;
 use config::CONFIG;
 use dotenv::dotenv;
 use log::info;

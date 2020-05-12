@@ -1,4 +1,4 @@
-use crate::payloads::responses::{ResponseBody, Status};
+// use crate::payloads::responses::{ResponseBody, Status};
 use crate::{config::constants, utils::jwt::Token};
 use actix_identity::RequestIdentity;
 use actix_service::{Service, Transform};
@@ -70,11 +70,14 @@ where
             })
         } else {
             Box::pin(async move {
-                let resp: ResponseBody<String> =
-                    ResponseBody::new(Status::SUCCESS, constants::MESSAGE_INVALID_TOKEN);
-                Ok(req.into_response(HttpResponse::Unauthorized().json(constants::MESSAGE_INVALID_TOKEN).into_body()))
+                // let resp: ResponseBody<String> =
+                //     ResponseBody::new(Status::SUCCESS, constants::MESSAGE_INVALID_TOKEN);
+                Ok(req.into_response(
+                    HttpResponse::Unauthorized()
+                        .json(constants::MESSAGE_INVALID_TOKEN)
+                        .into_body(),
+                ))
             })
         }
     }
 }
-

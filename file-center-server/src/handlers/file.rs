@@ -1,3 +1,4 @@
+use crate::config::CONFIG;
 use crate::models::file::File;
 use crate::models::user::UserAuth;
 use crate::services::file::*;
@@ -8,7 +9,6 @@ use actix_web::{HttpRequest, Result};
 use futures::StreamExt;
 use log::error;
 use sqlx::{Pool, SqliteConnection};
-use std::env;
 use std::io::Write;
 use std::path::Path;
 use uuid::Uuid;
@@ -20,21 +20,13 @@ pub async fn upload_file(
     user_auth: UserAuth,
     mut payload: Multipart,
 ) -> Result<HttpResponse> {
-    let path = match env::var("PATH_FILE") {
-        Ok(p) => p,
-        Err(e) => {
-            error!("env PATH_FILE error : {}", e);
-            return Ok(HttpResponse::InternalServerError()
-                .content_type("application/json")
-                .body("error !"));
-        }
-    };
     while let Some(item) = payload.next().await {
         let mut field = item?;
         let content_type = field.content_disposition().unwrap();
         let filename = content_type.get_filename().unwrap().to_string();
         let uuid = Uuid::new_v4().to_simple().to_string();
-        let filepath = Path::new(&path).join(&*format!("{}-{}", uuid, filename));
+        let filepath =
+            Path::new(CONFIG.path_file.as_str()).join(&*format!("{}-{}", uuid, filename));
         let conn = pool.clone();
         let file = File::new(&*filename, filepath.to_str().unwrap(), &*uuid, user_auth.id)
             .await
@@ -55,15 +47,12 @@ pub async fn upload_file(
 }
 
 pub async fn list_file(pool: PoolSqliteData, user_auth: UserAuth) -> Result<HttpResponse> {
-    let list = list_link_files(&pool, user_auth.id).await;
-    if let Err(e) = list {
-        return Ok(HttpResponse::Ok()
+    match list_files_service(&pool, user_auth.id).await {
+        Ok(r) => Ok(HttpResponse::Ok().content_type("application/json").json(r)),
+        Err(e) => Ok(HttpResponse::Ok()
             .content_type("application/json")
-            .body(e.to_string()));
+            .body(e.to_string())),
     }
-    Ok(HttpResponse::Ok()
-        .content_type("application/json")
-        .json(list.unwrap()))
 }
 
 pub async fn download_file(
@@ -112,8 +101,29 @@ pub async fn download_file(
 }
 
 pub async fn manual_upload_file() -> Result<HttpResponse> {
-    let text = r#" Post File Manual Page "#;
+    let response_body = r#" Manual Page
+    # Upload File 
+    curl -X POST --cookie 'RUSESSION=***' \
+    -F file=@fileName \
+    localhost:8080/api/file/upload
+    # Get List File
+    curl -X GET --cookie 'RUSESSION=***' \
+    localhost:8080/api/file/list
+    # Download File
+    curl -X GET --cookie 'RUSESSION=***' \
+    localhost:8080/api/file/download/linkID --output fileName
+    # Add Access Read To Users
+    curl -H "Content-Type: application/json" \
+    -d '{"link":"linkID","username":"user-name","access_type":"Read"}' \
+    --cookie 'RUSESSION=***' \
+    -X POST http://localhost:8080/api/file/access
+    # Remove Access 
+    curl -H "Content-Type: application/json" \
+    -d '{"link":"linkID","username":"user-name"}' \
+    --cookie 'RUSESSION=***' \
+    -X DELETE http://localhost:8080/api/file/access
+    "#;
     Ok(HttpResponse::Ok()
         .content_type("application/json")
-        .body(text))
+        .body(response_body))
 }

@@ -1,4 +1,2 @@
-
-pub enum ApiError{
-    
-}
+#[derive(Debug)]
+pub enum ApiError {}

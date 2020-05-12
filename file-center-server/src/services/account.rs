@@ -1,4 +1,4 @@
-use crate::models::role::{Role, RoleName};
+use crate::models::role::RoleName;
 use crate::models::user::User;
 use crate::payloads::requests::*;
 use crate::payloads::responses::*;

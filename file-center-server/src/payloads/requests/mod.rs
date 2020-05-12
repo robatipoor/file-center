@@ -27,3 +27,9 @@ pub struct UpdateAccessRequest {
     pub username: String,
     pub access_type: AccessType,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RemoveAccessRequest {
+    pub link: String,
+    pub username: String,
+}

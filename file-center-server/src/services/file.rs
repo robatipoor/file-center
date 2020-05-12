@@ -18,7 +18,10 @@ pub async fn get_file_by_link(pool: &DataPoolSqlite, link: &str) -> anyhow::Resu
     File::find_by_link(pool, link).await
 }
 
-pub async fn list_link_files(pool: &DataPoolSqlite, user_id: i64) -> anyhow::Result<Vec<String>> {
+pub async fn list_files_service(
+    pool: &DataPoolSqlite,
+    user_id: i64,
+) -> anyhow::Result<Vec<String>> {
     File::find_all_link_files(pool, user_id).await
 }
 
@@ -44,7 +47,7 @@ pub async fn get_download_path(pool: &DataPoolSqlite, link: &str) -> anyhow::Res
         Ok(path) => Ok(path),
         Err(e) => {
             error!("file not exist error message {}", e);
-            return Err(anyhow!("file not exist error message : {}", e));
+            Err(anyhow!("file not exist error message : {}", e))
         }
     }
 }
