@@ -8,20 +8,12 @@ use sqlx::{Pool, SqliteConnection};
 
 type PoolSqliteData = web::Data<Pool<SqliteConnection>>;
 
-pub async fn add_access(
+pub async fn add_or_update_access(
     pool: PoolSqliteData,
     user_auth: UserAuth,
     access_req: web::Json<UpdateAccessRequest>,
 ) -> Result<HttpResponse> {
-    match add_or_update_access_service(
-        &pool,
-        user_auth.id,
-        &*access_req.link,
-        &*access_req.username,
-        access_req.access_type,
-    )
-    .await
-    {
+    match add_or_update_access_service(&pool, user_auth.id, &access_req.0).await {
         Ok(b) => {
             info!("");
             return Ok(HttpResponse::Ok().content_type("application/json").json(b));
