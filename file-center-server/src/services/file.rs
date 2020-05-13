@@ -1,10 +1,46 @@
+use super::DataPoolSqlite;
 use crate::models::access_user::AccessUser;
 use crate::models::file::File;
-use actix_web::web;
+use crate::models::user::UserAuth;
+use actix_files::NamedFile;
+use actix_multipart::Multipart;
 use log::{debug, error};
-use sqlx::{Pool, SqliteConnection};
 
-type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
+pub async fn uplaod_file_service<T: AsRef<str>>(
+    _pool: &DataPoolSqlite,
+    _user_auth: UserAuth,
+    mut _payload: Multipart,
+) {
+    todo!()
+}
+
+pub async fn download_file_service<T: AsRef<str>>(
+    pool: &DataPoolSqlite,
+    user_auth: UserAuth,
+    link: T,
+) -> anyhow::Result<NamedFile> {
+    if let Err(e) = user_access_to_link(&pool, link.as_ref(), user_auth.id).await {
+        error!("Unauthorized : {}", e);
+        return Err(anyhow!("user not access to file \n"));
+    };
+
+    let path: String = match get_download_path(&pool, link.as_ref()).await {
+        Ok(list) => list,
+        Err(e) => {
+            error!("message error : {}", e);
+            return Err(anyhow!("not found link id \n"));
+        }
+    };
+
+    let named_file = match NamedFile::open(path) {
+        Ok(n) => n,
+        Err(e) => {
+            error!("message error : {}", e);
+            return Err(anyhow!("failed open file"));
+        }
+    };
+    Ok(named_file)
+}
 
 pub async fn get_id(pool: &DataPoolSqlite, link: &str) -> anyhow::Result<i64> {
     File::find_id(pool, link).await

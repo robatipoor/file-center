@@ -13,7 +13,7 @@ use std::io::Write;
 use std::path::Path;
 use uuid::Uuid;
 
-type PoolSqliteData = web::Data<Pool<SqliteConnection>>;
+pub type PoolSqliteData = web::Data<Pool<SqliteConnection>>;//TODO replace it with datapool in service
 
 pub async fn upload_file(
     pool: PoolSqliteData,

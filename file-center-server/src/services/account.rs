@@ -3,10 +3,7 @@ use crate::models::user::User;
 use crate::payloads::requests::*;
 use crate::payloads::responses::*;
 use crate::utils::jwt::Token;
-use actix_web::web;
-use sqlx::{Pool, SqliteConnection};
-
-type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
+use super::DataPoolSqlite;
 
 pub async fn login_service(
     login: LoginRequest,
