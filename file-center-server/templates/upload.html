@@ -12,10 +12,6 @@
         id="bootstrap-css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"></script>
     <style>
-        input[type="file"] {
-            display: none;
-        }
-
         body {
             margin: 0;
             padding: 0;
@@ -48,16 +44,17 @@
             <div id="upload-row" class="row justify-content-center align-items-center">
                 <div id="upload-column" class="col-md-6">
                     <div id="upload-box" class="col-md-12">
-                        <form id="upload-form" class="form" action="/upload" method="post">
+                        <form id="upload-form" class="form" action="/api/file/upload" method="POST"
+                            enctype="multipart/form-data">
                             <h3 class="text-center text-info">please choose file </h3>
                             <div class="form-inline">
-                                <input type="text" name="text" id="text-input" class="form-control"
+                                <input type="text" id="text-input" class="form-control"
                                     style="width: 340px;" />
                                 <input type="file" name="file" id="file-input" class="form-control" hidden />
                                 <label for="file-input" class="btn btn-info btn-md">Choose a file</label>
                             </div>
                             <div class="form-group">
-                                <input type="submit" id="submit" name="submit" class="btn btn-info btn-md"
+                                <input type="submit" id="submit" class="btn btn-info btn-md"
                                     value="Upload" style="position: absolute; left: 78%; right: 80%; bottom: 5%;">
                             </div>
                         </form>
@@ -77,10 +74,12 @@
         }
     });
 
-    $('#submit').on('click', function (e) {
+    $("#upload-form").submit(function (e) {
         e.preventDefault();
+        console.log('ok!');
+        console.log($('form')[0]);
         $.ajax({
-            url: '/upload',
+            url: '/api/file/upload',
             method: "POST",
             data: new FormData($('form')[0]),
             cache: false,
