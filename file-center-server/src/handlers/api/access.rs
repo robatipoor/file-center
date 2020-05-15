@@ -4,12 +4,10 @@ use crate::services::access::*;
 use actix_web::Result;
 use actix_web::{web, HttpResponse};
 use log::{error, info};
-use sqlx::{Pool, SqliteConnection};
-
-type PoolSqliteData = web::Data<Pool<SqliteConnection>>;
+use crate::models::DataPoolSqlite;
 
 pub async fn add_or_update_access(
-    pool: PoolSqliteData,
+    pool: DataPoolSqlite,
     user_auth: UserAuth,
     access_req: web::Json<UpdateAccessRequest>,
 ) -> Result<HttpResponse> {
@@ -28,7 +26,7 @@ pub async fn add_or_update_access(
 }
 
 pub async fn remove_access(
-    pool: PoolSqliteData,
+    pool: DataPoolSqlite,
     user_auth: UserAuth,
     access_req: web::Json<RemoveAccessRequest>,
 ) -> Result<HttpResponse> {

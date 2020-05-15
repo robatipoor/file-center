@@ -1,6 +1,11 @@
 use actix_web::{http::StatusCode, HttpResponse};
 use serde::{Deserialize, Serialize};
 use std::string::ToString;
+#[derive(sqlx::FromRow, Debug, Serialize, Deserialize)]
+pub struct FileResponse {
+    pub name: String,
+    pub link: String,
+}
 
 #[derive(Debug, Serialize, Deserialize, Display)]
 pub enum Status {

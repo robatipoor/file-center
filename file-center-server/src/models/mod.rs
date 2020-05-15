@@ -10,6 +10,9 @@ use crate::utils::file::read_file;
 use log::info;
 use sqlx::{Pool, SqliteConnection, SqlitePool};
 use std::fmt;
+use actix_web::web;
+
+pub type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
 
 pub struct DataBase {
     pub pool: Pool<SqliteConnection>,

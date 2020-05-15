@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 extern crate actix_web;
+extern crate tera;
 #[macro_use]
 extern crate lazy_static;
 extern crate bcrypt;

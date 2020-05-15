@@ -1,3 +1,4 @@
+use crate::payloads::responses::FileResponse;
 use log::info;
 use sqlx::prelude::*;
 use sqlx::{Pool, SqliteConnection};
@@ -96,13 +97,14 @@ impl File {
     pub async fn find_all_link_files(
         pool: &Pool<SqliteConnection>,
         user_id: i64,
-    ) -> anyhow::Result<Vec<String>> {
-        let links: Vec<(String,)> = sqlx::query_as("SELECT link FROM files WHERE user_id = $1")
-            .bind(user_id)
-            .fetch_all(pool)
-            .await?;
-        info!("");
-        Ok(links.iter().map(|l| l.0.to_string()).collect())
+    ) -> anyhow::Result<Vec<FileResponse>> {
+        let links: Vec<FileResponse> =
+            sqlx::query_as("SELECT name,link FROM files WHERE user_id = $1")
+                .bind(user_id)
+                .fetch_all(pool)
+                .await?;
+        info!("find all link by user id");
+        Ok(links.into_iter().collect())
     }
 
     pub async fn is_owner(

@@ -3,7 +3,7 @@ use crate::models::user::User;
 use crate::payloads::requests::*;
 use crate::payloads::responses::*;
 use crate::utils::jwt::Token;
-use super::DataPoolSqlite;
+use crate::models::DataPoolSqlite;
 
 pub async fn login_service(
     login: LoginRequest,

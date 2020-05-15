@@ -1,7 +1,8 @@
-use super::DataPoolSqlite;
+use crate::models::DataPoolSqlite;
 use crate::models::access_user::AccessUser;
 use crate::models::file::File;
 use crate::models::user::UserAuth;
+use crate::payloads::responses::FileResponse;
 use actix_files::NamedFile;
 use actix_multipart::Multipart;
 use log::{debug, error};
@@ -57,7 +58,7 @@ pub async fn get_file_by_link(pool: &DataPoolSqlite, link: &str) -> anyhow::Resu
 pub async fn list_files_service(
     pool: &DataPoolSqlite,
     user_id: i64,
-) -> anyhow::Result<Vec<String>> {
+) -> anyhow::Result<Vec<FileResponse>> {
     File::find_all_link_files(pool, user_id).await
 }
 

@@ -1,4 +1,3 @@
-// use crate::payloads::responses::{ResponseBody, Status};
 use crate::{config::constants, utils::jwt::Token};
 use actix_identity::RequestIdentity;
 use actix_service::{Service, Transform};

@@ -1,6 +1,7 @@
 use crate::config::CONFIG;
 use crate::models::file::File;
 use crate::models::user::UserAuth;
+use crate::models::DataPoolSqlite;
 use crate::services::file::*;
 use actix_files::NamedFile;
 use actix_multipart::Multipart;
@@ -8,15 +9,12 @@ use actix_web::{web, HttpResponse};
 use actix_web::{HttpRequest, Result};
 use futures::StreamExt;
 use log::error;
-use sqlx::{Pool, SqliteConnection};
 use std::io::Write;
 use std::path::Path;
 use uuid::Uuid;
 
-pub type PoolSqliteData = web::Data<Pool<SqliteConnection>>;//TODO replace it with datapool in service
-
 pub async fn upload_file(
-    pool: PoolSqliteData,
+    pool: DataPoolSqlite,
     user_auth: UserAuth,
     mut payload: Multipart,
 ) -> Result<HttpResponse> {
@@ -46,7 +44,7 @@ pub async fn upload_file(
     Ok(HttpResponse::Ok().into())
 }
 
-pub async fn list_file(pool: PoolSqliteData, user_auth: UserAuth) -> Result<HttpResponse> {
+pub async fn list_file(pool: DataPoolSqlite, user_auth: UserAuth) -> Result<HttpResponse> {
     match list_files_service(&pool, user_auth.id).await {
         Ok(r) => Ok(HttpResponse::Ok().content_type("application/json").json(r)),
         Err(e) => Ok(HttpResponse::Ok()
@@ -56,7 +54,7 @@ pub async fn list_file(pool: PoolSqliteData, user_auth: UserAuth) -> Result<Http
 }
 
 pub async fn download_file(
-    pool: PoolSqliteData,
+    pool: DataPoolSqlite,
     user_auth: UserAuth,
     req: HttpRequest,
 ) -> Result<NamedFile, HttpResponse> {
@@ -69,35 +67,12 @@ pub async fn download_file(
                 .body("linkID not exist in request uri \n"));
         }
     };
-
-    if let Err(e) = user_access_to_link(&pool, &*link, user_auth.id).await {
-        error!("Unauthorized : {}", e);
-        return Err(HttpResponse::Unauthorized()
+    match download_file_service(&pool, user_auth, link).await {
+        Ok(r) => Ok(r),
+        Err(e) => Err(HttpResponse::Unauthorized()
             .content_type("application/json")
-            .body("user not access to file \n"));
-    };
-
-    let path = match get_download_path(&pool, &*link).await {
-        Ok(list) => list,
-        Err(e) => {
-            error!("message error : {}", e);
-            return Err(HttpResponse::NotFound()
-                .content_type("application/json")
-                .body("not found link id \n"));
-        }
-    };
-
-    let named_file = match NamedFile::open(path) {
-        Ok(n) => n,
-        Err(e) => {
-            error!("message error : {}", e);
-            return Err(HttpResponse::InternalServerError()
-                .content_type("application/json")
-                .body("failed open file"));
-        }
-    };
-
-    Ok(named_file)
+            .body(e.to_string())),
+    }
 }
 
 pub async fn manual_upload_file() -> Result<HttpResponse> {

@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 extern crate actix_cors;
 extern crate actix_web;
-
 extern crate bcrypt;
 extern crate chrono;
 extern crate dotenv;
@@ -13,6 +12,7 @@ extern crate log;
 extern crate serde_json;
 extern crate sqlx;
 extern crate strum;
+extern crate tera;
 extern crate uuid;
 #[macro_use]
 extern crate strum_macros;
@@ -41,6 +41,7 @@ use log::info;
 use models::DataBase;
 use routers::router::router;
 use std::default::Default;
+use tera::Tera;
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
@@ -49,6 +50,7 @@ async fn main() -> std::io::Result<()> {
     let pool = db.get_conn_pool().await;
     info!("Start Server Address : {}", CONFIG.address_server);
     HttpServer::new(move || {
+        let tera = Tera::new(concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*")).unwrap();
         App::new()
             .wrap(
                 Cors::new()
@@ -59,6 +61,7 @@ async fn main() -> std::io::Result<()> {
                     .max_age(3600)
                     .finish(),
             )
+            .data(tera)
             .data(pool.clone())
             .wrap(get_identity_service())
             .wrap(middleware::Logger::default())

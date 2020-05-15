@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet"
+        id="bootstrap-css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #17a2b8;
+            height: 100vh;
+        }
+
+        #list-file .container #list-file-row #list-file-column #list-file-box {
+            margin-top: 50px;
+            max-width: 600px;
+            height: 1000px;
+            border: 1px solid #9C9C9C;
+            background-color: #EAEAEA;
+        }
+
+        #list-file .container #list-file-row #list-file-column #list-file-box #list-file-form {
+            padding: 20px;
+        }
+
+        #list-file .container #list-file-row #list-file-column #list-file-box #list-file-form #list-file-link {
+            margin-top: -85px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="list-file">
+        <!-- <h3 class="text-center text-white pt-5">list-file</h3> -->
+        <div class="container">
+            <div id="list-file-row" class="row justify-content-center align-items-center">
+                <div id="list-file-column" class="col-md-6">
+                    <div id="list-file-box" class="col-md-12">
+                        <h3 class="text-center text-info">list file</h3>
+                        {% for file in files %}
+                        <div class="form-inline">
+                            <label class="text-info">File : {{loop.index}} </label>
+                            <label class="text-info">Name : {{file.name}} </label>
+                            <label class="text-info">Link : {{file.link}} </label>
+                        </div>
+                        <div class="form-inline">
+                            <form action="/download/{{file.link}}" method="get">
+                                <input type="submit" class="btn btn-info btn-md" value="Download">
+                            </form>
+                            <form action="/access" method="get">
+                                <input type="submit" class="btn btn-info btn-md" value="Add Access">
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

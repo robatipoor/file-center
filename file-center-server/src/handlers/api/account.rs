@@ -1,12 +1,10 @@
 use crate::models::user::UserAuth;
+use crate::models::DataPoolSqlite;
 use crate::payloads::requests::{LoginRequest, RegisterRequest};
 use crate::services::account::*;
 use actix_identity::Identity;
 use actix_web::{web, HttpResponse, Result};
 use log::error;
-use sqlx::{Pool, SqliteConnection};
-
-type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
 
 pub async fn update_account(
     _req: web::Json<LoginRequest>,
@@ -32,9 +30,9 @@ pub async fn register(
         Ok(r) => Ok(HttpResponse::Ok().content_type("application/json").json(r)),
         Err(e) => {
             error!("unsuccessful user register message : {}", e);
-            Ok(HttpResponse::Ok()
+            Ok(HttpResponse::BadRequest()
                 .content_type("application/json")
-                .json("Unsuccessful register"))
+                .json(format!("Unsuccessful register {}", e)))
         }
     }
 }

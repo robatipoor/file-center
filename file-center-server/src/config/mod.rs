@@ -1,5 +1,4 @@
 pub mod constants;
-
 use dotenv::dotenv;
 use envy::from_env;
 use serde::{Deserialize, Serialize};

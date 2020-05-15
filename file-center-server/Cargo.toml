@@ -21,11 +21,12 @@ serde_json = "1.0.53"
 chrono = "0.4.11"
 actix-multipart = "0.2.0"
 actix-files = "0.2.1"
-anyhow = "1.0.28"
+anyhow = "1.0.30"
 strum = "0.18.0"
 strum_macros = "0.18.0"
 lazy_static = "1.4.0"
 envy = "0.4.1"
+tera = "1.2.0"
 
 [dependencies.uuid]
 features = ["serde", "v4"]

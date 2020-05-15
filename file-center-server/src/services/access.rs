@@ -4,7 +4,7 @@ use crate::models::file::File;
 use crate::models::user::User;
 use crate::payloads::requests::{RemoveAccessRequest, UpdateAccessRequest};
 use log::{debug, error, info};
-use super::DataPoolSqlite;
+use crate::models::DataPoolSqlite;
 
 const WRITE_ACCESS_ID: i64 = AccessType::Write as i64;
 const READ_ACCESS_ID: i64 = AccessType::Read as i64;
