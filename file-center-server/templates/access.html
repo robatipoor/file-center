@@ -12,10 +12,6 @@
         id="bootstrap-css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"></script>
     <style>
-        input[type="file"] {
-            display: none;
-        }
-
         body {
             margin: 0;
             padding: 0;
@@ -23,42 +19,38 @@
             height: 100vh;
         }
 
-        #upload .container #upload-row #upload-column #upload-box {
-            margin-top: 100px;
+        #login .container #login-row #login-column #login-box {
+            margin-top: 120px;
             max-width: 600px;
-            height: 300px;
+            height: 320px;
             border: 1px solid #9C9C9C;
             background-color: #EAEAEA;
         }
 
-        #upload .container #upload-row #upload-column #upload-box #upload-form {
+        #login .container #login-row #login-column #login-box #login-form {
             padding: 20px;
         }
 
-        #upload .container #upload-row #upload-column #upload-box #upload-form #upload-link {
+        #login .container #login-row #login-column #login-box #login-form #register-link {
             margin-top: -85px;
         }
     </style>
 </head>
-
 <body>
-    <div id="upload">
-        <h3 class="text-center text-white pt-5">upload file</h3>
+    <div id="login">
+        <h3 class="text-center text-white pt-5">Login form</h3>
         <div class="container">
-            <div id="upload-row" class="row justify-content-center align-items-center">
-                <div id="upload-column" class="col-md-6">
-                    <div id="upload-box" class="col-md-12">
-                        <form id="upload-form" class="form" action="/upload" method="post">
-                            <h3 class="text-center text-info">please choose file </h3>
-                            <div class="form-inline">
-                                <input type="text" name="text" id="text-input" class="form-control"
-                                    style="width: 340px;" />
-                                <input type="file" name="file" id="file-input" class="form-control" hidden />
-                                <label for="file-input" class="btn btn-info btn-md">Choose a file</label>
+            <div id="login-row" class="row justify-content-center align-items-center">
+                <div id="login-column" class="col-md-6">
+                    <div id="login-box" class="col-md-12">
+                        <form id="login-form" class="form" action="#" method="#">
+                            <h5 class="text-center text-info">Link : {{link}}</h5>
+                            <div class="form-group">
+                                <label for="username" class="text-info">username:</label><br>
+                                <input type="text" name="username" id="username" class="form-control">
                             </div>
                             <div class="form-group">
-                                <input type="submit" id="submit" name="submit" class="btn btn-info btn-md"
-                                    value="Upload" style="position: absolute; left: 78%; right: 80%; bottom: 5%;">
+                                <input type="submit" name="access" class="btn btn-info btn-md" value="Add Read Access">
                             </div>
                         </form>
                     </div>
@@ -68,33 +60,29 @@
     </div>
 </body>
 <script>
-
-    $('#file-input').change(function (e) {
-        let file = this.files[0];
-        $('#text-input').val(file.name);
-        if (file.size > 20000000) {
-            alert('max upload size is 20M');
-        }
-    });
-
-    $('#submit').on('click', function (e) {
+    function getFormData($form) {
+        let unindexed_array = $form.serializeArray();
+        let indexed_array = {};
+        $.map(unindexed_array, function (n, i) {
+            indexed_array[n['name']] = n['value'];
+        });
+        return indexed_array;
+    } 
+    $("#login-form").submit(function (e) {
         e.preventDefault();
         $.ajax({
-            url: '/upload',
+            url: '/api/auth/login',
             method: "POST",
-            data: new FormData($('form')[0]),
-            cache: false,
-            contentType: false,
-            processData: false,
+            data: JSON.stringify(getFormData($("#login-form"))),
+            contentType: "application/json",
             success: function (data) {
-                alert('Success Upload File');
+                alert('Success Login');
+                window.location = "list";
             },
             error: function (e) {
-                alert('Failed Upload File');
+                alert(e.responseJSON);
             }
         });
-    });
-
+    })
 </script>
-
 </html>

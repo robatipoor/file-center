@@ -15,6 +15,7 @@ pub fn router(service_config: &mut web::ServiceConfig) {
             .service(web::resource("register").route(web::get().to(register_page)))
             .service(web::resource("list").route(web::get().to(list_file_page)))
             .service(web::resource("upload").route(web::get().to(upload_page)))
+            .service(web::resource("access/{linkID:.*}").route(web::get().to(access_page)))
             .service(
                 web::scope("api")
                     .service(web::resource("manual").route(web::get().to(manual_upload_file)))

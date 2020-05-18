@@ -37,6 +37,22 @@ pub async fn upload_page(tml: web::Data<Tera>) -> Result<HttpResponse> {
     Ok(HttpResponse::Ok().content_type("text/html").body(s))
 }
 
+pub async fn access_page(tml: web::Data<Tera>, req: HttpRequest) -> Result<HttpResponse> {
+    let link: String = match req.match_info().query("linkID").parse() {
+        Ok(l) => l,
+        Err(e) => {
+            error!("message error : {}", e);
+            return Err(error::ErrorInternalServerError("parse link error"));
+        }
+    };
+    let mut ctx = Context::new();
+    ctx.insert("link", &link);
+    let s = tml
+        .render("access.html", &ctx)
+        .map_err(|_| error::ErrorInternalServerError("Template error"))?;
+    Ok(HttpResponse::Ok().content_type("text/html").body(s))
+}
+
 pub async fn list_file_page(
     pool: DataPoolSqlite,
     tml: web::Data<Tera>,
