@@ -1,6 +1,8 @@
 #![allow(dead_code)]
-extern crate actix_cors;
 extern crate actix_web;
+extern crate tera;
+#[macro_use]
+extern crate lazy_static;
 extern crate bcrypt;
 extern crate chrono;
 extern crate dotenv;
@@ -12,14 +14,12 @@ extern crate log;
 extern crate serde_json;
 extern crate sqlx;
 extern crate strum;
-extern crate tera;
 extern crate uuid;
 #[macro_use]
 extern crate strum_macros;
 #[macro_use]
 extern crate anyhow;
-#[macro_use]
-extern crate lazy_static;
+extern crate actix_cors;
 
 mod config;
 mod errors;
@@ -42,6 +42,7 @@ use models::DataBase;
 use routers::router::router;
 use std::default::Default;
 use tera::Tera;
+
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
