@@ -19,6 +19,7 @@ extern crate uuid;
 extern crate strum_macros;
 #[macro_use]
 extern crate anyhow;
+extern crate actix_cors;
 
 pub mod config;
 pub mod errors;
