@@ -64,22 +64,18 @@
 </body>
 <script>
     $("#access").change(function (e) {
-        // const access = $(this).children("option:selected").val();
-        // const user = $('#username').val();
-        // const link = $('meta[name=link]').attr("content");
-        let data = {
+        const data = {
             access_type: $(this).children("option:selected").val(),
             username: $('#username').val(),
             link: $('meta[name=link]').attr("content"),
         };
-        console.log(data);
         $.ajax({
             url: '/api/file/access',
             method: "POST",
             data: JSON.stringify(data),
             contentType: "application/json",
             success: function (data) {
-                alert('Success Login');
+                alert(`Add Access ${data.access_type} to user ${data.username}`);
                 window.location = "list";
             },
             error: function (e) {
