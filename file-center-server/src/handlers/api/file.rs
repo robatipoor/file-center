@@ -46,10 +46,9 @@ pub async fn upload_file(
 
 pub async fn list_file(pool: DataPoolSqlite, user_auth: UserAuth) -> Result<HttpResponse> {
     match list_files_service(&pool, user_auth.id).await {
-        Ok(r) => Ok(HttpResponse::Ok().content_type("application/json").json(r)),
+        Ok(r) => Ok(HttpResponse::Ok().json(r)),
         Err(e) => Ok(HttpResponse::Ok()
-            .content_type("application/json")
-            .body(e.to_string())),
+            .json(e.to_string())),
     }
 }
 
@@ -70,8 +69,7 @@ pub async fn download_file(
     match download_file_service(&pool, user_auth, link).await {
         Ok(r) => Ok(r),
         Err(e) => Err(HttpResponse::Unauthorized()
-            .content_type("application/json")
-            .body(e.to_string())),
+            .json(e.to_string())),
     }
 }
 
@@ -99,6 +97,5 @@ pub async fn manual_upload_file() -> Result<HttpResponse> {
     -X DELETE http://localhost:8080/api/file/access
     "#;
     Ok(HttpResponse::Ok()
-        .content_type("application/json")
-        .body(response_body))
+        .json(response_body))
 }

@@ -11,14 +11,14 @@ actix-rt = "1.1.1"
 actix-service = "1.0.5"
 actix-web = "2.0"
 actix-identity = "0.2.1"
-bcrypt = "0.8.0"
+bcrypt = "0.8.1"
 dotenv = "0.15.0"
 env_logger = "0.7.1"
 futures = "0.3.5"
-jsonwebtoken = "7.1.1"
+jsonwebtoken = "7.2.0"
 log = "0.4.8"
-serde_json = "1.0.55"
-chrono = "0.4.11"
+serde_json = "1.0.56"
+chrono = "0.4.13"
 actix-multipart = "0.2.0"
 actix-files = "0.2.2"
 anyhow = "1.0.31"
@@ -39,7 +39,7 @@ version = "0.3.5"
 
 [dependencies.serde]
 features = ["derive"]
-version = "1.0.111"
+version = "1.0.114"
 
 [build-dependencies]
 

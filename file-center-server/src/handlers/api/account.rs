@@ -27,11 +27,10 @@ pub async fn register(
     pool: DataPoolSqlite,
 ) -> Result<HttpResponse> {
     match register_service(req.into_inner(), &pool).await {
-        Ok(r) => Ok(HttpResponse::Ok().content_type("application/json").json(r)),
+        Ok(r) => Ok(HttpResponse::Ok().json(r)),
         Err(e) => {
             error!("unsuccessful user register message : {}", e);
             Ok(HttpResponse::BadRequest()
-                .content_type("application/json")
                 .json(format!("Unsuccessful register {}", e)))
         }
     }
@@ -45,12 +44,11 @@ pub async fn login(
     match login_service(req.into_inner(), &pool).await {
         Ok(r) => {
             identity.remember(r.token.clone());
-            Ok(HttpResponse::Ok().content_type("application/json").json(r))
+            Ok(HttpResponse::Ok().json(r))
         }
         Err(e) => {
             error!("login unsuccessful error message : {}", e);
             Ok(HttpResponse::Ok()
-                .content_type("application/json")
                 .json("login unsuccessful"))
         }
     }
@@ -59,6 +57,5 @@ pub async fn login(
 pub async fn logout(identity: Identity) -> Result<HttpResponse> {
     identity.forget();
     Ok(HttpResponse::Ok()
-        .content_type("application/json")
         .json("logout"))
 }
