@@ -7,10 +7,10 @@ pub mod user;
 use crate::config::constants;
 use crate::config::CONFIG;
 use crate::utils::file::read_file;
+use actix_web::web;
 use log::info;
 use sqlx::{Pool, SqliteConnection, SqlitePool};
 use std::fmt;
-use actix_web::web;
 
 pub type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
 
@@ -75,7 +75,7 @@ impl DataBase {
         })
     }
 
-    pub async fn auto_ddl_generate() -> anyhow::Result<DataBase> {
+    pub async fn auto_migrate() -> anyhow::Result<DataBase> {
         use DataDefinitionLanguageMode::*;
         let ddl_mode = DataDefinitionLanguageMode::from_env()?;
         let database = DataBase::new().await?;
@@ -108,14 +108,14 @@ impl DataBase {
     }
 
     async fn create_schema(&self) -> anyhow::Result<()> {
-        sqlx::query(&*read_file(constants::SCHEMA_SQL_FILE_PATH)?)
+        sqlx::query(&*read_file(constants::SCHEMA_SQL_FILE_PATH).await?)
             .execute(&self.pool)
             .await?;
         info!("Create Schema ");
         Ok(())
     }
     pub async fn insert_data(&self) -> anyhow::Result<()> {
-        sqlx::query(&*read_file(constants::INSERT_SQL_FILE_PATH)?)
+        sqlx::query(&*read_file(constants::INSERT_SQL_FILE_PATH).await?)
             .execute(&self.pool)
             .await?;
         info!("Insert Data");
@@ -123,15 +123,15 @@ impl DataBase {
     }
 
     pub async fn drop_database(&self) -> anyhow::Result<()> {
-        sqlx::query(&*read_file(constants::DROP_SQL_FILE_PATH)?)
+        sqlx::query(&*read_file(constants::DROP_SQL_FILE_PATH).await?)
             .execute(&self.pool)
             .await?;
-        info!("Drop Tables ");
+        info!("Drop Tables");
         Ok(())
     }
 
     pub async fn delete_data(&self) -> anyhow::Result<()> {
-        sqlx::query(&*read_file(constants::DELETE_SQL_FILE_PATH)?)
+        sqlx::query(&*read_file(constants::DELETE_SQL_FILE_PATH).await?)
             .execute(&self.pool)
             .await?;
         info!("Delete Data");

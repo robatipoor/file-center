@@ -21,7 +21,7 @@ pub async fn upload_file(
     while let Some(item) = payload.next().await {
         let mut field = item?;
         let content_type = field.content_disposition().unwrap();
-        let filename = content_type.get_filename().unwrap().to_string();//TODO fix please
+        let filename = content_type.get_filename().unwrap().to_string(); //TODO fix please
         let uuid = Uuid::new_v4().to_simple().to_string();
         let filepath =
             Path::new(CONFIG.path_file.as_str()).join(&*format!("{}-{}", uuid, filename));
@@ -47,8 +47,7 @@ pub async fn upload_file(
 pub async fn list_file(pool: DataPoolSqlite, user_auth: UserAuth) -> Result<HttpResponse> {
     match list_files_service(&pool, user_auth.id).await {
         Ok(r) => Ok(HttpResponse::Ok().json(r)),
-        Err(e) => Ok(HttpResponse::Ok()
-            .json(e.to_string())),
+        Err(e) => Ok(HttpResponse::Ok().json(e.to_string())),
     }
 }
 
@@ -68,8 +67,7 @@ pub async fn download_file(
     };
     match download_file_service(&pool, user_auth, link).await {
         Ok(r) => Ok(r),
-        Err(e) => Err(HttpResponse::Unauthorized()
-            .json(e.to_string())),
+        Err(e) => Err(HttpResponse::Unauthorized().json(e.to_string())),
     }
 }
 
@@ -96,6 +94,5 @@ pub async fn manual_upload_file() -> Result<HttpResponse> {
     --cookie 'RUSESSION=***' \
     -X DELETE http://localhost:8080/api/file/access
     "#;
-    Ok(HttpResponse::Ok()
-        .json(response_body))
+    Ok(HttpResponse::Ok().json(response_body))
 }

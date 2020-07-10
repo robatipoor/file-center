@@ -1,10 +1,10 @@
 use crate::models::user::UserAuth;
+use crate::models::DataPoolSqlite;
 use crate::payloads::requests::{RemoveAccessRequest, UpdateAccessRequest};
 use crate::services::access::*;
 use actix_web::Result;
 use actix_web::{web, HttpResponse};
 use log::{error, info};
-use crate::models::DataPoolSqlite;
 
 pub async fn add_or_update_access(
     pool: DataPoolSqlite,
@@ -18,8 +18,7 @@ pub async fn add_or_update_access(
         }
         Err(e) => {
             error!("error {}", e);
-            Ok(HttpResponse::Ok()
-                .json(e.to_string()))
+            Ok(HttpResponse::Ok().json(e.to_string()))
         }
     }
 }
@@ -36,8 +35,7 @@ pub async fn remove_access(
         }
         Err(e) => {
             error!("error {}", e);
-            Ok(HttpResponse::Ok()
-                .json(e.to_string()))
+            Ok(HttpResponse::Ok().json(e.to_string()))
         }
     }
 }

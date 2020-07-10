@@ -3,7 +3,6 @@ authors = ["Mahdi Robatipoor <mahdi.robatipoor@gmail.com>"]
 edition = "2018"
 name = "file-center"
 version = "0.1.0"
-build = "build.rs"
 
 [dependencies]
 actix-cors = "0.2.0"
@@ -40,6 +39,14 @@ version = "0.3.5"
 [dependencies.serde]
 features = ["derive"]
 version = "1.0.114"
+
+[dependencies.reqwest]
+features = ["json"]
+version = "0.10.6"
+
+[dependencies.tokio]
+features = ["fs"]
+version = "0.2.21"
 
 [build-dependencies]
 

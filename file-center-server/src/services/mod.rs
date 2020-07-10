@@ -1,4 +1,4 @@
-use crate::config::constants::{SESSION_KEY, SESSION_NAME,SESSION_EXPIRE_TIME_MINUTES};
+use crate::config::constants::{SESSION_EXPIRE_TIME_MINUTES, SESSION_KEY, SESSION_NAME};
 use actix_identity::{CookieIdentityPolicy, IdentityService};
 pub mod access;
 pub mod account;

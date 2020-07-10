@@ -2,9 +2,9 @@ use crate::models::access::AccessType;
 use crate::models::access_user::AccessUser;
 use crate::models::file::File;
 use crate::models::user::User;
+use crate::models::DataPoolSqlite;
 use crate::payloads::requests::{RemoveAccessRequest, UpdateAccessRequest};
 use log::{debug, error, info};
-use crate::models::DataPoolSqlite;
 
 const WRITE_ACCESS_ID: i64 = AccessType::Write as i64;
 const READ_ACCESS_ID: i64 = AccessType::Read as i64;

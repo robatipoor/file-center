@@ -1,4 +1,3 @@
-
 SHELL := /bin/bash
 COMPILER = rustc
 COMPILER_FLAGS = -O

@@ -1,5 +1,7 @@
-fn get(url: String) -> Result<(), Box<dyn std::error::Error>> {
-    let resp = reqwest::blocking::get("https://httpbin.org/ip")?.text()?;
-    println!("{:#?}", resp);
-    Ok(())
+pub async fn get(url: &str) -> anyhow::Result<String> {
+    reqwest::get(url)
+        .await?
+        .text()
+        .await
+        .map_err(|e| anyhow!("error get url {}", e))
 }

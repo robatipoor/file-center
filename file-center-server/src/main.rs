@@ -42,12 +42,13 @@ use models::DataBase;
 use routers::router::router;
 use std::default::Default;
 use tera::Tera;
+use utils::http;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
     env_logger::init();
-    let db = DataBase::auto_ddl_generate().await.unwrap();
+    let db = DataBase::auto_migrate().await.unwrap();
     let pool = db.get_conn_pool().await;
     info!("Start Server Address : {}", CONFIG.address_server);
     HttpServer::new(move || {

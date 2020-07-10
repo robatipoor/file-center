@@ -30,8 +30,7 @@ pub async fn register(
         Ok(r) => Ok(HttpResponse::Ok().json(r)),
         Err(e) => {
             error!("unsuccessful user register message : {}", e);
-            Ok(HttpResponse::BadRequest()
-                .json(format!("Unsuccessful register {}", e)))
+            Ok(HttpResponse::BadRequest().json(format!("Unsuccessful register {}", e)))
         }
     }
 }
@@ -48,14 +47,12 @@ pub async fn login(
         }
         Err(e) => {
             error!("login unsuccessful error message : {}", e);
-            Ok(HttpResponse::Ok()
-                .json("login unsuccessful"))
+            Ok(HttpResponse::Ok().json("login unsuccessful"))
         }
     }
 }
 
 pub async fn logout(identity: Identity) -> Result<HttpResponse> {
     identity.forget();
-    Ok(HttpResponse::Ok()
-        .json("logout"))
+    Ok(HttpResponse::Ok().json("logout"))
 }
