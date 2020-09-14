@@ -1,6 +1,7 @@
 use crate::models::user::UserAuth;
 use crate::utils::jwt::Token;
-use actix_identity::RequestIdentity;
+use actix_http::HttpMessage;
+use actix_identity::{RequestIdentity,Identity};
 use actix_web::{
     dev::Payload,
     web::{HttpRequest, HttpResponse},
@@ -14,7 +15,7 @@ impl FromRequest for UserAuth {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _payload: &mut Payload) -> Self::Future {
-        let identity = RequestIdentity::get_identity(req);
+        let identity = req.get_identity();
         if let Some(identity) = identity {
             let token: Token = Token::decode(identity).unwrap().claims;
             return ok(UserAuth {
