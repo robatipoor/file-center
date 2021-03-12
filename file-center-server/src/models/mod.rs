@@ -9,13 +9,13 @@ use crate::config::CONFIG;
 use crate::utils::file::read_file;
 use actix_web::web;
 use log::info;
-use sqlx::{Pool, SqliteConnection, SqlitePool};
+use sqlx::SqlitePool;
 use std::fmt;
 
-pub type DataPoolSqlite = web::Data<Pool<SqliteConnection>>;
+pub type DataPoolSqlite = web::Data<SqlitePool>;
 
 pub struct DataBase {
-    pub pool: Pool<SqliteConnection>,
+    pub pool: SqlitePool,
 }
 
 pub enum DataDefinitionLanguageMode {
@@ -90,12 +90,12 @@ impl DataBase {
         Ok(database)
     }
 
-    pub async fn get_conn_pool(self) -> Pool<SqliteConnection> {
+    pub async fn get_conn_pool(self) -> SqlitePool {
         self.pool
     }
 
-    async fn open_conn_pool() -> anyhow::Result<Pool<SqliteConnection>> {
-        let pool = SqlitePool::new(CONFIG.database_url.as_str()).await?;
+    async fn open_conn_pool() -> anyhow::Result<SqlitePool> {
+        let pool = SqlitePool::connect(CONFIG.database_url.as_str()).await?;
         Ok(pool)
     }
 

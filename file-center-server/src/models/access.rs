@@ -1,9 +1,8 @@
 use serde::{Deserialize, Serialize};
 use sqlx::decode::Decode;
 use sqlx::encode::Encode;
-use sqlx::prelude::*;
 use sqlx::sqlite::SqliteTypeInfo;
-use sqlx::{Pool, SqliteConnection};
+use sqlx::SqlitePool;
 use sqlx::{Sqlite, Type};
 use std::string::ToString;
 
@@ -48,7 +47,7 @@ impl Access {
     }
 
     pub async fn find_by_name(
-        pool: &Pool<SqliteConnection>,
+        pool: &SqlitePool,
         access_type: AccessType,
     ) -> anyhow::Result<Access> {
         let access = sqlx::query_as::<_, Access>(
@@ -60,10 +59,7 @@ impl Access {
         Ok(access)
     }
 
-    pub async fn find_by_id(
-        pool: &Pool<SqliteConnection>,
-        access_id: i64,
-    ) -> anyhow::Result<Access> {
+    pub async fn find_by_id(pool: &SqlitePool, access_id: i64) -> anyhow::Result<Access> {
         let access =
             sqlx::query_as::<_, Access>("SELECT id, access_type FROM access WHERE id = $1")
                 .bind(access_id)
@@ -72,7 +68,7 @@ impl Access {
         Ok(access)
     }
 
-    pub async fn find_all(pool: &Pool<SqliteConnection>) -> anyhow::Result<Vec<Access>> {
+    pub async fn find_all(pool: &SqlitePool) -> anyhow::Result<Vec<Access>> {
         let access = sqlx::query_as::<_, Access>("SELECT id, access_type FROM access ")
             .fetch_all(pool)
             .await?;

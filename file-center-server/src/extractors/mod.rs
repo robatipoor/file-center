@@ -1,7 +1,7 @@
 use crate::models::user::UserAuth;
 use crate::utils::jwt::Token;
-use actix_http::HttpMessage;
-use actix_identity::{RequestIdentity,Identity};
+
+use actix_identity::RequestIdentity;
 use actix_web::{
     dev::Payload,
     web::{HttpRequest, HttpResponse},

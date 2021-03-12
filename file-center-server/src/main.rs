@@ -42,7 +42,6 @@ use models::DataBase;
 use routers::router::router;
 use std::default::Default;
 use tera::Tera;
-use utils::http;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
@@ -53,16 +52,14 @@ async fn main() -> std::io::Result<()> {
     info!("Start Server Address : {}", CONFIG.address_server);
     HttpServer::new(move || {
         let tera = Tera::new(concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*")).unwrap();
+        let cors = Cors::default()
+            .send_wildcard()
+            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+            .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
+            .allowed_header(header::CONTENT_TYPE)
+            .max_age(3600);
         App::new()
-            .wrap(
-                Cors::new()
-                    .send_wildcard()
-                    .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
-                    .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
-                    .allowed_header(header::CONTENT_TYPE)
-                    .max_age(3600)
-                    .finish(),
-            )
+            .wrap(cors)
             .data(tera)
             .data(pool.clone())
             .wrap(get_identity_service())

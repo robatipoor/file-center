@@ -1,9 +1,9 @@
 use crate::{config::constants, utils::jwt::Token};
-use actix_identity::{Identity, RequestIdentity};
+use actix_identity::RequestIdentity;
 use actix_service::{Service, Transform};
 use actix_web::{
-    dev::{Payload, ServiceRequest, ServiceResponse},
-    web, Error, HttpRequest, HttpResponse
+    dev::{ ServiceRequest, ServiceResponse},
+    web, Error, HttpResponse,
 };
 use futures::{
     future::{ok, Ready},
@@ -55,7 +55,7 @@ where
     }
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
         let mut authenticate_pass: bool = false;
-        let identity =  req.get_identity();
+        let identity = req.get_identity();
         if let Some(iden) = identity {
             if Token::decode(iden).is_ok() {
                 authenticate_pass = true;

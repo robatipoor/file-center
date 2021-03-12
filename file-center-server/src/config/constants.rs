@@ -4,7 +4,6 @@ pub const MESSAGE_INVALID_TOKEN: &str = "Invalid token, please login again";
 // Headers
 pub const AUTHORIZATION: &str = "Authorization";
 pub const TOKEN_EXPIRE_TIME: i64 = 3600 * 24 * 30; // in seconds
-                                                   // Sql files
 pub const DELETE_SQL_FILE_PATH: &str = "sql/delete.sql";
 pub const DROP_SQL_FILE_PATH: &str = "sql/drop.sql";
 pub const SCHEMA_SQL_FILE_PATH: &str = "sql/schema.sql";

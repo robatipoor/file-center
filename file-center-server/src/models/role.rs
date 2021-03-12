@@ -1,9 +1,8 @@
 use sqlx::decode::Decode;
 use sqlx::encode::Encode;
-use sqlx::prelude::*;
 use sqlx::sqlite::SqliteTypeInfo;
+use sqlx::SqlitePool;
 use sqlx::{FromRow, Sqlite, Type};
-use sqlx::{Pool, SqliteConnection};
 use std::string::ToString;
 
 #[derive(FromRow, Debug)]
@@ -46,10 +45,7 @@ impl Role {
         })
     }
 
-    pub async fn find_by_name(
-        pool: &Pool<SqliteConnection>,
-        role_name: RoleName,
-    ) -> anyhow::Result<Role> {
+    pub async fn find_by_name(pool: &SqlitePool, role_name: RoleName) -> anyhow::Result<Role> {
         Ok(
             sqlx::query_as::<_, Role>("SELECT id,role_name FROM roles WHERE role_name = $1")
                 .bind(role_name.to_string())
@@ -58,7 +54,7 @@ impl Role {
         )
     }
 
-    pub async fn find_by_id(pool: &Pool<SqliteConnection>, user_id: i64) -> anyhow::Result<Role> {
+    pub async fn find_by_id(pool: &SqlitePool, user_id: i64) -> anyhow::Result<Role> {
         Ok(
             sqlx::query_as::<_, Role>("SELECT id,role_name FROM roles WHERE id = $1")
                 .bind(user_id)
@@ -67,7 +63,7 @@ impl Role {
         )
     }
 
-    pub async fn find_all(pool: &Pool<SqliteConnection>) -> anyhow::Result<Vec<Role>> {
+    pub async fn find_all(pool: &SqlitePool) -> anyhow::Result<Vec<Role>> {
         Ok(sqlx::query_as::<_, Role>("SELECT id,role_name FROM roles")
             .fetch_all(pool)
             .await?)

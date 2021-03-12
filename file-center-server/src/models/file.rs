@@ -1,7 +1,6 @@
 use crate::payloads::responses::FileResponse;
 use log::info;
-use sqlx::prelude::*;
-use sqlx::{Pool, SqliteConnection};
+use sqlx::SqlitePool;
 #[derive(sqlx::FromRow, Debug)]
 pub struct File {
     pub id: i64,
@@ -21,7 +20,7 @@ impl File {
             user_id,
         })
     }
-    pub async fn save(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<i64> {
+    pub async fn save(&self, pool: &SqlitePool) -> anyhow::Result<i64> {
         println!("{} {} {}", self.name, self.path, self.user_id);
         sqlx::query(r#"INSERT INTO files (name, path ,link,user_id) VALUES ($1,$2,$3,$4)"#)
             .bind(self.name.as_str())
@@ -37,7 +36,7 @@ impl File {
         Ok(record.0)
     }
 
-    pub async fn find_id(pool: &Pool<SqliteConnection>, link: &str) -> anyhow::Result<i64> {
+    pub async fn find_id(pool: &SqlitePool, link: &str) -> anyhow::Result<i64> {
         let id: (i64,) = sqlx::query_as("SELECT id FROM files WHERE link = $1")
             .bind(link)
             .fetch_one(pool)
@@ -46,7 +45,7 @@ impl File {
         Ok(id.0)
     }
 
-    pub async fn find_by_id(pool: &Pool<SqliteConnection>, file_id: i64) -> anyhow::Result<File> {
+    pub async fn find_by_id(pool: &SqlitePool, file_id: i64) -> anyhow::Result<File> {
         let file = sqlx::query_as::<_, File>(
             "SELECT id, name ,path , link, user_id FROM files WHERE id = $1",
         )
@@ -57,10 +56,7 @@ impl File {
         Ok(file)
     }
 
-    pub async fn find_path_by_link(
-        pool: &Pool<SqliteConnection>,
-        link: &str,
-    ) -> anyhow::Result<String> {
+    pub async fn find_path_by_link(pool: &SqlitePool, link: &str) -> anyhow::Result<String> {
         let path: (String,) = sqlx::query_as("SELECT path FROM files WHERE link = $1")
             .bind(link)
             .fetch_one(pool)
@@ -69,7 +65,7 @@ impl File {
         Ok(path.0)
     }
 
-    pub async fn find_by_link(pool: &Pool<SqliteConnection>, link: &str) -> anyhow::Result<File> {
+    pub async fn find_by_link(pool: &SqlitePool, link: &str) -> anyhow::Result<File> {
         let file = sqlx::query_as::<_, File>(
             "SELECT id, name, path, link, user_id FROM files WHERE link = $1",
         )
@@ -80,10 +76,7 @@ impl File {
         Ok(file)
     }
 
-    pub async fn find_by_user(
-        pool: &Pool<SqliteConnection>,
-        user_id: i64,
-    ) -> anyhow::Result<Vec<File>> {
+    pub async fn find_by_user(pool: &SqlitePool, user_id: i64) -> anyhow::Result<Vec<File>> {
         let files = sqlx::query_as::<_, File>(
             "SELECT id, name, path ,link ,user_id FROM files WHERE user_id = $1",
         )
@@ -95,7 +88,7 @@ impl File {
     }
 
     pub async fn find_all_link_files(
-        pool: &Pool<SqliteConnection>,
+        pool: &SqlitePool,
         user_id: i64,
     ) -> anyhow::Result<Vec<FileResponse>> {
         let links: Vec<FileResponse> =
@@ -107,11 +100,7 @@ impl File {
         Ok(links.into_iter().collect())
     }
 
-    pub async fn is_owner(
-        pool: &Pool<SqliteConnection>,
-        link: &str,
-        user_id: i64,
-    ) -> anyhow::Result<bool> {
+    pub async fn is_owner(pool: &SqlitePool, link: &str, user_id: i64) -> anyhow::Result<bool> {
         let id: (i64,) = sqlx::query_as(
             r#"SELECT EXISTS (SELECT id FROM files WHERE user_id = $1 AND link = $2)"#,
         )
@@ -123,8 +112,8 @@ impl File {
         Ok(id.0 > 0)
     }
 
-    pub async fn update(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query(
+    pub async fn update(&self, pool: &SqlitePool) -> anyhow::Result<u64> {
+        let result = sqlx::query(
             r#"UPDATE files SET name = $1 ,path = $2 ,link = $3 ,user_id = $4 WHERE id = $5"#,
         )
         .bind(self.name.as_str())
@@ -135,33 +124,33 @@ impl File {
         .execute(pool)
         .await?;
         // info!("");
-        Ok(row_affected)
+        Ok(result.rows_affected())
     }
 
-    pub async fn delete(&self, pool: &Pool<SqliteConnection>) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query(r#"DELETE FROM files WHERE id = $1"#)
+    pub async fn delete(&self, pool: &SqlitePool) -> anyhow::Result<u64> {
+        let result = sqlx::query(r#"DELETE FROM files WHERE id = $1"#)
             .bind(self.id)
             .execute(pool)
             .await?;
         info!("");
-        Ok(row_affected)
+        Ok(result.rows_affected())
     }
 
-    pub async fn delete_by_link(pool: &Pool<SqliteConnection>, link: &str) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query(r#"DELETE FROM files WHERE link = $1"#)
+    pub async fn delete_by_link(pool: &SqlitePool, link: &str) -> anyhow::Result<u64> {
+        let result = sqlx::query(r#"DELETE FROM files WHERE link = $1"#)
             .bind(link)
             .execute(pool)
             .await?;
         info!("");
-        Ok(row_affected)
+        Ok(result.rows_affected())
     }
 
-    pub async fn delete_by_path(pool: &Pool<SqliteConnection>, path: &str) -> anyhow::Result<u64> {
-        let row_affected = sqlx::query(r#"DELETE FROM files WHERE path = $1"#)
+    pub async fn delete_by_path(pool: &SqlitePool, path: &str) -> anyhow::Result<u64> {
+        let result = sqlx::query(r#"DELETE FROM files WHERE path = $1"#)
             .bind(path)
             .execute(pool)
             .await?;
         info!("");
-        Ok(row_affected)
+        Ok(result.rows_affected())
     }
 }
